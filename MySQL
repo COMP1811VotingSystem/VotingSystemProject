@@ -1,8 +1,10 @@
 import mysql.connector
 
 # Connecting to database. NOTE code line 8 must be called before database can be entered in the below command
+# Add password to below executing!
 
-db = mysql.connector.connect(user='York', password='footballMSK98', host='localhost',database="GSUVotingSystemDatabase")
+
+db = mysql.connector.connect(user='York', password='', host='localhost',database="GSUVotingSystemDatabase")
 mycursor = db.cursor(buffered=True)
 
 mycursor.execute("CREATE DATABASE GSUVotingSystemDatabase")
