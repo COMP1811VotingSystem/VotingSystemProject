@@ -1,0 +1,43 @@
+from abc import ABC, abstractmethod
+
+
+class Person(ABC):
+    '''
+    Base class which student and candidate sub-classes will inherit from
+    '''
+    def __init__(self,forename,surname,faculty,gender):
+        self.forename = forename
+        self.surname = surname
+        self.faculty = faculty
+        self.gender = gender
+
+
+class Candidate(Person):
+    '''
+    Sub-Class inheriting from Person
+    '''
+    def __init__(self, forename, surname,position,faculty,gender):
+        self.position = position
+        super().__init__(forename,surname,gender,faculty)
+
+
+class Student(Person):
+    '''
+    Sub-Class inheriting from Person
+    '''
+    def __init__(self,forename,surname,username,password,faculty,gender,has_registered=False):
+        self.username = username
+        self.__has_registered = has_registered
+        self.__password = password
+        super().__init__(forename,surname,faculty,gender)
+
+    def get_registered(self):
+
+        if self.__has_registered:
+            print(f'Student {self.forename} {self.surname} has registered to vote')
+        else:
+            print(f'Student {self.forename} {self.surname} has not registered to vote')
+
+    def set_registered(self,newvalue):
+
+        self.__has_registered = newvalue
