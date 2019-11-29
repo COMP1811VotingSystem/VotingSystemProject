@@ -28,6 +28,7 @@ class Student(Person):
     """
     Sub-Class inheriting from Person
     """
+
     def __init__(self, forename, surname, username, password, faculty, gender, has_registered=False):
         self.username = username
         self.__has_registered = has_registered
@@ -50,5 +51,7 @@ class LoginInterface(Student):
     """
     Login details for every student to be used when on the GUI
     """
+
     def __init__(self, username, password):
         super().__init__(username, password)
+
