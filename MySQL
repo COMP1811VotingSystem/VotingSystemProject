@@ -1,0 +1,30 @@
+import mysql.connector
+
+# Connecting to database
+
+db = mysql.connector.connect(user='York', password='footballMSK98', host='localhost',database="GSUVotingSystemDatabase")
+mycursor = db.cursor(buffered=True)
+
+# Creating All Tables
+
+mycursor.execute("CREATE TABLE Student (Forename VARCHAR(50) NOT NULL, Surname VARCHAR(50) NOT NULL,"
+                 "Username VARCHAR(7) NOT NULL PRIMARY KEY, Password VARCHAR(50) NOT NULL,"
+                 "Gender ENUM('M','F','O') NOT NULL)")
+                 
+mycursor.execute("CREATE TABLE Candidate (Forename VARCHAR(50) NOT NULL, Surname VARCHAR(50) NOT NULL,
+                 "Position VARCHAR(50) NOT NULL, Username VARCHAR(7) NOT NULL PRIMARY KEY,
+                 "Faculty ENUM('AS','SB','EH','ES') NOT NULL, Gender ENUM('M','F','O') NOT NULL)")
+                 
+mycursor.execute("CREATE TABLE Votes (VotesID int PRIMARY KEY NOT NULL AUTO_INCREMENT,Username VARCHAR(7),
+                 "FOREIGN KEY(Username) REFERENCES Student(Username), Position VARCHAR(50),
+                 "FirstPreference VARCHAR(50), SecondPreference VARCHAR(50), ThirdPreference VARCHAR(50),
+                 "FourthPreference VARCHAR(50))")
+                 
+mycursor.execute("CREATE TABLE Result (Username VARCHAR(7) NOT NULL, FOREIGN KEY(Username) REFERENCES Candidate(Username),
+                 "FirstPreference int DEFAULT 0, SecondPreference int DEFAULT 0, ThirdPreference int DEFAULT 0, 
+                 "FourthPreference int DEFAULT 0)")
+
+
+ 
+                 
+                 
