@@ -1,9 +1,12 @@
 import mysql.connector
 
-# Connecting to database
+# Connecting to database. NOTE code line 8 must be called before database can be entered in the below command
 
 db = mysql.connector.connect(user='York', password='footballMSK98', host='localhost',database="GSUVotingSystemDatabase")
 mycursor = db.cursor(buffered=True)
+
+mycursor.execute("CREATE DATABASE GSUVotingSystemDatabase")
+
 
 # Creating All Tables
 
@@ -23,7 +26,29 @@ mycursor.execute("CREATE TABLE Votes (VotesID int PRIMARY KEY NOT NULL AUTO_INCR
 mycursor.execute("CREATE TABLE Result (Username VARCHAR(7) NOT NULL, FOREIGN KEY(Username) REFERENCES Candidate(Username),
                  "FirstPreference int DEFAULT 0, SecondPreference int DEFAULT 0, ThirdPreference int DEFAULT 0, 
                  "FourthPreference int DEFAULT 0)")
+                 
 
+
+# Other Important Code
+
+
+# Printing out data from a table
+
+mycursor.execute("SELECT * FROM Student")
+for x in mycursor:
+    print(x)
+    
+# Checking each column and their attributes
+
+mycursor.execute("DESCRIBE Student")
+for x in mycursor:
+    print(x)
+    
+# Selecting all tables
+
+mycursor.execute("SHOW TABLES")
+for x in mycursor:
+    print(x)
 
  
                  
