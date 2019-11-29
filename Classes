@@ -2,10 +2,11 @@ from abc import ABC, abstractmethod
 
 
 class Person(ABC):
-    '''
+    """
     Base class which student and candidate sub-classes will inherit from
-    '''
-    def __init__(self,forename,surname,faculty,gender):
+    """
+
+    def __init__(self, forename, surname, faculty, gender):
         self.forename = forename
         self.surname = surname
         self.faculty = faculty
@@ -13,23 +14,25 @@ class Person(ABC):
 
 
 class Candidate(Person):
-    '''
+    """
     Sub-Class inheriting from Person
-    '''
-    def __init__(self, forename, surname,position,faculty,gender):
+    """
+
+    def __init__(self, forename, surname, position, username, faculty, gender):
         self.position = position
-        super().__init__(forename,surname,gender,faculty)
+        self.position = username
+        super().__init__(forename, surname, gender, faculty)
 
 
 class Student(Person):
-    '''
+    """
     Sub-Class inheriting from Person
-    '''
-    def __init__(self,forename,surname,username,password,faculty,gender,has_registered=False):
+    """
+    def __init__(self, forename, surname, username, password, faculty, gender, has_registered=False):
         self.username = username
         self.__has_registered = has_registered
         self.__password = password
-        super().__init__(forename,surname,faculty,gender)
+        super().__init__(forename, surname, faculty, gender)
 
     def get_registered(self):
 
@@ -38,6 +41,14 @@ class Student(Person):
         else:
             print(f'Student {self.forename} {self.surname} has not registered to vote')
 
-    def set_registered(self,newvalue):
+    def set_registered(self, newvalue):
 
         self.__has_registered = newvalue
+
+
+class LoginInterface(Student):
+    """
+    Login details for every student to be used when on the GUI
+    """
+    def __init__(self, username, password):
+        super().__init__(username, password)
