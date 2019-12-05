@@ -1,1 +1,15 @@
+from tkinter import *
+from tkinter import ttk
+
+window = Tk()
+window.title('Voting System')
+window.geometry('300x350')
+
+lbl = Label(window, text='GSU Elections', font=('Century Gothic', 25), bg='white').pack(fill='x')
+Label(window, text="").pack()
+lbl1 = Label(window, text='Choose a position:').pack()
+positions = ttk.Combobox(window, values=('GSU President', 'GSU Officers', 'Faculty Officers')).pack()
+
+
+window.mainloop()
 
