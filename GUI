@@ -1,1 +1,110 @@
-#Test
+# import modules
+
+from tkinter import *
+import os
+import time as datetime
+
+def login():
+    global login_screen
+    login_screen = Toplevel(main_screen)
+    login_screen.title("Login")
+    login_screen.geometry("500x450")
+    Label(login_screen, text="").pack()
+    Label(login_screen, text="   Sign In   ", fg='white', height="1", font=("Century Gothic", 22), bg='#252440').pack()
+    Label(login_screen, text="").pack()
+    Label(login_screen, text="Please enter details below to login", font=("Century Gothic", 13)).pack()
+    Label(login_screen, text="").pack()
+
+    global username_verify
+    global password_verify
+
+    username_verify = StringVar()
+    password_verify = StringVar()
+
+    global username_login_entry
+    global password_login_entry
+
+    Label(login_screen, text="Username * ").pack()
+    username_login_entry = Entry(login_screen, textvariable=username_verify)
+    username_login_entry.pack()
+    Label(login_screen, text="").pack()
+    Label(login_screen, text="Password * ").pack()
+    password_login_entry = Entry(login_screen, textvariable=password_verify, show='*')
+    password_login_entry.pack()
+    Label(login_screen, text="").pack()
+    Button(login_screen, text="Login", width=10, height=1, command=login_verify).pack()
+
+
+#Here is where we have to compare the username and passw from the database
+def login_verify():
+    username1 = username_verify.get()
+    password1 = password_verify.get()
+    username_login_entry.delete(0, END)
+    password_login_entry.delete(0, END)
+    os.listdir()
+
+    with open("users", "r") as username_finder:
+        for line in username_finder:
+            if (username1 + " : " + password1) == line.strip():
+                login_sucess()
+                break
+        else:
+            user_not_found()
+
+
+def login_sucess():
+    global login_success_screen
+    login_success_screen = Toplevel(login_screen)
+    login_success_screen.title("Success")
+    login_success_screen.geometry("450x300")
+    Label(login_success_screen, text="Login Success").pack()
+    Button(login_success_screen, text="OK", command=delete_login_success).pack()
+    
+
+def user_not_found():
+    global user_not_found_screen
+    user_not_found_screen = Toplevel(login_screen)
+    user_not_found_screen.title("Success")
+    user_not_found_screen.geometry("450x300")
+    Label(user_not_found_screen, text="This person is not eligible to vote").pack()
+    Button(user_not_found_screen, text="OK", command=delete_user_not_found_screen).pack()
+
+
+def delete_login_success():
+    login_success_screen.destroy()
+
+
+def delete_user_not_found_screen():
+    user_not_found_screen.destroy()
+
+
+def main_account_screen():
+    global main_screen
+    main_screen = Tk()
+    main_screen.geometry("550x550")
+    main_screen.title("GSU Elections 2020")
+    Label(text="Welcome to the GSU Voting System", fg='white', width="300", height="2", font=("Century Gothic", 30),
+          bg='#252440').pack()
+    Label(text="").pack()
+    Label(text="").pack()
+    Label(text="").pack()
+    Label(text="").pack()
+    Label(text="Login to vote in this elections", fg='grey', font=("Century Gothic", 15)).pack()
+    Label(text="").pack()
+    c = 0
+    if c == 1:
+        Label(main_screen, text="Sorry is not the right day").pack()
+        Button(main_screen, text="Exit", height="1", width="20", command=main_screen.quit).pack()
+    else:
+        Button(text="Login", height="1", width="20", command=login).pack()
+        Button(main_screen, text="Exit", height="1", width="20", command=main_screen.quit).pack()
+
+    Label(text="").pack()
+    photo = PhotoImage(file='logogsu.png')
+    photo1 = PhotoImage(file='UoGlogo.png')
+    Label(main_screen, image=photo).place(relx=0.6, rely=0.82)
+    Label(main_screen, image=photo1).place(relx=0.0, rely=0.75)
+    main_screen.mainloop()
+
+
+main_account_screen()
