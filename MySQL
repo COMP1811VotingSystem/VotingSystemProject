@@ -99,4 +99,17 @@ mycursor.execute("SELECT * FROM Candidate")
 for x in mycursor:
     print(x)
     
+   
+   
+# Code for making objects from the MySQL tables - must import classes first!
+
+
+students = []
+
+mycursor.execute("SELECT * FROM Student")
+for row in mycursor:
+    students.append(Student(forename=row[0], surname=row[1], username=row[2], password=row[3],
+                            gender=row[4], faculty=row[5]))
+                            
+                        
     
