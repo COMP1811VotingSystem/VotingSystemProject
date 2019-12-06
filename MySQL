@@ -55,3 +55,21 @@ for x in mycursor:
  
                  
                  
+# Example code of adding 5 students to MySQL Database
+
+mycursor.execute("INSERT INTO Student (Forename, Surname, Username, Password, Gender, Faculty)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Dante", "Christian", "dc3045g", "ChristDante",
+                                                     "M", "EH"))
+mycursor.execute("INSERT INTO Student (Forename, Surname, Username, Password, Gender, Faculty)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Milly", "Rose", "mr2945g", "HelloWorld",
+                                                     "F", "EH"))
+mycursor.execute("INSERT INTO Student (Forename, Surname, Username, Password, Gender, Faculty)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Chloe", "Miles", "cm4935g", "99Chloe99",
+                                                     "F", "EH"))
+mycursor.execute("INSERT INTO Student (Forename, Surname, Username, Password, Gender, Faculty)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Ronny", "Diaz", "rd2034g", "RDRDPass",
+                                                     "M", "EH"))
+mycursor.execute("INSERT INTO Student (Forename, Surname, Username, Password, Gender, Faculty)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Tre", "Hawes", "th2034g", "TreHawes1999",
+                                                     "M", "EH"))
+
