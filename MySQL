@@ -30,32 +30,10 @@ mycursor.execute("CREATE TABLE Result (Username VARCHAR(7) NOT NULL, FOREIGN KEY
                  "FourthPreference int DEFAULT 0)")
                  
 
-
-# Other Important Code
-
-
-# Printing out data from a table
-
-mycursor.execute("SELECT * FROM Student")
-for x in mycursor:
-    print(x)
-    
-# Checking each column and their attributes
-
-mycursor.execute("DESCRIBE Student")
-for x in mycursor:
-    print(x)
-    
-# Selecting all tables
-
-mycursor.execute("SHOW TABLES")
-for x in mycursor:
-    print(x)
-
- 
                  
                  
-# Example code of adding 5 students to MySQL Database
+# Adding 5 students to MySQL Database
+
 
 mycursor.execute("INSERT INTO Student (Forename, Surname, Username, Password, Gender, Faculty)"
                  "VALUES (%s, %s, %s, %s, %s, %s)", ("Dante", "Christian", "dc3045g", "ChristDante",
@@ -73,3 +51,52 @@ mycursor.execute("INSERT INTO Student (Forename, Surname, Username, Password, Ge
                  "VALUES (%s, %s, %s, %s, %s, %s)", ("Tre", "Hawes", "th2034g", "TreHawes1999",
                                                      "M", "EH"))
 
+
+
+# Inserting four Presidents and twelve GSU Officers into the MySQL tables
+
+
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Angela", "Schneider", "GSU Officer", "as2019g",
+                                                     "AS", "F"))
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Craig", "Gibson", "GSU Officer", "cg2039g",
+                                                     "SB", "M"))
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Ross", "Hodge", "GSU Officer", "rh5039g",
+                                                     "ES", "M"))
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Sade", "Guy", "GSU Officer", "sg4509g",
+                                                     "EH", "F"))
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Athena", "Clay", "GSU Officer", "ac4938g",
+                                                     "AS", "F"))
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Ethan", "Robert", "GSU Officer", "er3056g",
+                                                     "SB", "M"))
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Jasmine", "Hancock", "GSU Officer", "jh4056g",
+                                                     "ES", "F"))
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Aimee", "Sahara", "GSU Officer", "as4829g",
+                                                     "EH", "F"))
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Sami", "Prosser", "GSU Officer", "sp2078g",
+                                                     "AS", "F"))
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Ryan", "Oneil", "GSU Officer", "ro3945g",
+                                                     "SB", "M"))
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Jon", "Hook", "GSU Officer", "jh2579g",
+                                                     "ES", "M"))
+mycursor.execute("INSERT INTO Candidate (Forename, Surname, Position, Username, Faculty, Gender)"
+                 "VALUES (%s, %s, %s, %s, %s, %s)", ("Audrey", "Cortez", "GSU Officer", "ac4956g",
+                                                     "EH", "F"))
+
+db.commit()
+
+mycursor.execute("SELECT * FROM Candidate")
+for x in mycursor:
+    print(x)
+    
+    
