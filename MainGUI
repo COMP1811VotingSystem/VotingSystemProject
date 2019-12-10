@@ -1,0 +1,121 @@
+# import modules
+
+from MySQL import students, candidates
+import tkinter as tk
+from tkinter import *
+import os
+import datetime
+import sys
+from tkinter import messagebox
+
+
+def login():
+    global login_screen
+    login_screen = Toplevel(main_screen)
+    login_screen.title("Login")
+    login_screen.geometry("{0}x{1}+0+0".format(login_screen.winfo_screenwidth(), login_screen.winfo_screenheight()))
+    login_screen.resizable(width=FALSE, height=FALSE)
+    Label(login_screen, text="").pack()
+    Label(login_screen, text="   Sign In   ", fg='white', height="1", font=("Century Gothic", 22), bg='#252440').pack()
+    Label(login_screen, text="").pack()
+    Label(login_screen, text="Please enter details below to login", font=("Century Gothic", 13)).pack()
+    Label(login_screen, text="").pack()
+
+    global username_verify
+    global password_verify
+
+    username_verify = StringVar()
+    password_verify = StringVar()
+
+    global username_login_entry
+    global password_login_entry
+
+    Label(login_screen, text="Username * ").pack()
+    username_login_entry = Entry(login_screen, textvariable=username_verify)
+    username_login_entry.pack()
+    Label(login_screen, text="").pack()
+    Label(login_screen, text="Password * ").pack()
+    password_login_entry = Entry(login_screen, textvariable=password_verify, show='*')
+    password_login_entry.pack()
+    Label(login_screen, text="").pack()
+    Button(login_screen, text="Login", width=10, height=1, command=login_verify).pack()
+
+
+# Here is where we have to compare the username and passw from the database
+def login_verify():
+    username1 = username_verify.get()
+    password1 = password_verify.get()
+    username_login_entry.delete(0, END)
+    password_login_entry.delete(0, END)
+    os.listdir()
+
+    counter = 0
+
+    while True:
+        if students[counter].password == password1 and students[counter].username == username1:
+            login_success()
+            break
+        else:
+            counter += 1
+            Label(main_screen, text="The username or password provided is incorrect. Please try again").pack()
+            continue
+
+
+def login_success():
+    messagebox.showinfo("Alert Message", "Login Successful")
+
+
+def login_unsuccessful():
+    messagebox.showinfo("Alert Message", "Login Failed. Please try again")
+
+
+def user_not_found():
+    messagebox.showinfo("Alert Message", "Sorry, you are not eligible to vote")
+    response = messagebox.askyesno("Try again", "Login Again?")
+    if response == 1:
+        # Label(text="").pack()
+        login()
+    else:
+        Button(text='Exit', command=exit_button()).pack()
+
+
+def delete_login_success():
+    login_success_screen.destroy()
+
+
+def delete_user_not_found_screen():
+    user_not_found_screen.destroy()
+
+
+def main_account_screen():
+    global main_screen
+    main_screen = Tk()
+    main_screen.geometry("{0}x{1}+0+0".format(main_screen.winfo_screenwidth(), main_screen.winfo_screenheight()))
+    main_screen.resizable(width=FALSE, height=FALSE)
+    main_screen.title("GSU Elections 2020")
+    Label(text="Welcome to the GSU Voting System", fg='white', width="300", height="2", font=("Century Gothic", 30),
+          bg='#252440').pack()
+    Label(text="").pack()
+    Label(text="").pack()
+    Label(text="").pack()
+    Label(text="").pack()
+    Label(text="Login to vote in this elections", fg='grey', font=("Century Gothic", 15)).pack()
+    Label(text="").pack()
+    # Condition that checks if the date is correct in order to vote
+    date_object = datetime.date.today()
+    date_vote1 = datetime.date(2019, 12, 7)  # starting date to allow the vote
+    date_vote2 = datetime.date(2019, 12, 11)  # last date for the vote
+    if date_vote1 <= date_object <= date_vote2:
+        Button(text="Login", height="3", width="70", command=login).place(x=500, y=500)
+        Button(main_screen, text="Exit", height="3", width="70", command=main_screen.quit).place(x=500, y=570)
+    else:
+        Label(main_screen, text="Voting is now officially closed").pack()
+        Button(main_screen, text="Exit", height="1", width="20", command=main_screen.quit).pack()
+
+    Label(text="").pack()
+
+
+    main_screen.mainloop()
+
+
+main_account_screen()
