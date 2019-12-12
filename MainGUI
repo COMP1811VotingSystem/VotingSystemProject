@@ -39,9 +39,9 @@ def login_screen():
     login_page.configure(background="white")
 
     # background
-    background_image = tk.PhotoImage(file="greuni.png")
+    background_image = tk.PhotoImage(file="nightgre.png")
     background_label = tk.Label(login_page, image=background_image, bg="white")
-    background_label.place(relx=-0.40, rely=0.60, anchor=W)
+    background_label.place(relx=-0.02, rely=0.40, anchor=W)
 
     # login text
     Label(login_page, text="Log in with your University Username and Password", bg="RoyalBlue4", fg="white",
@@ -74,7 +74,7 @@ def vote():
     # Code below checks that voting is open
     open_date = datetime.date.today()
     start_date = datetime.date(2019, 12, 7)
-    end_date = datetime.date(2019, 12, 11)
+    end_date = datetime.date(2019, 12, 13)
     if start_date <= open_date <= end_date:
         # todo need to create functionality to only use one screen instead of several here.
 
