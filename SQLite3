@@ -1,0 +1,33 @@
+import sqlite3
+
+# Setting up sqlite3
+connect = sqlite3.connect("voting.db")
+cursor = connect.cursor()
+
+cursor.execute("""CREATE TABLE Student (
+                Forename text, Surname text, Username text, Password text,
+                Faculty text, Gender text, YearGroup integer
+                )""")
+cursor.execute("""CREATE TABLE Candidate (
+                Forename text, Surname text, Position text, Faculty text,
+                Username text, Gender text, YearGroup integer, 
+                )""")
+cursor.execute("""CREATE TABLE Results (
+                Username text, FirstPreference integer, SecondPreference integer,
+                ThirdPreference integer, FourthPreference integer
+                )""")
+cursor.execute("""CREATE TABLE PresidentVotes (
+                Username text, FirstPreference text, SecondPreference text,
+                ThirdPreference text, FourthPreference text
+                )""")
+cursor.execute("""CREATE TABLE FacultyOfficerVotes (
+                Username text, FirstPreference text, SecondPreference text,
+                ThirdPreference text, FourthPreference text
+                )""")
+cursor.execute("""CREATE TABLE GSUOfficerVotes (
+                Username text, FirstPreference text, SecondPreference text,
+                ThirdPreference text, FourthPreference text
+                )""")
+
+connect.commit()
+connect.close()
