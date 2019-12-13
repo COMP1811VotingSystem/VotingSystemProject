@@ -1,6 +1,6 @@
 # import modules
 
-from MySQL import students, candidates
+#from MySQL import students, candidates
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk
@@ -41,7 +41,7 @@ def login_screen():
     # background
     background_image = tk.PhotoImage(file="nightgre.png")
     background_label = tk.Label(login_page, image=background_image, bg="white")
-    background_label.place(relx=-0.02, rely=0.40, anchor=W)
+    background_label.place(relx=-0.02, rely=0.49, anchor=W)
 
     # login text
     Label(login_page, text="Log in with your University Username and Password", bg="RoyalBlue4", fg="white",
@@ -58,6 +58,8 @@ def login_screen():
           font=("Arial", "10", "bold")).place(relx=0.735, rely=0.39, anchor=E)
     Entry(login_page, textvariable=password_verify, width="25", borderwidth="3",
           relief="sunken").place(relx=0.83, rely=0.39, anchor=E)
+    Button(login_page, text="Log In", height="4", width=10).place(relx=0.89, rely=0.37, anchor=E)
+
 
 
     # todo continue with username functionality adding login button to this page
@@ -77,10 +79,7 @@ def vote():
     end_date = datetime.date(2019, 12, 13)
     if start_date <= open_date <= end_date:
         # todo need to create functionality to only use one screen instead of several here.
-
         login_screen()
-
-
     else:
         messagebox.showinfo("Alert Message", "Voting is now closed")
         # Button(main_screen, text="Exit", height="1", width="20", command=main_screen.quit).pack()
