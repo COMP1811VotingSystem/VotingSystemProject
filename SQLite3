@@ -1,8 +1,8 @@
 import sqlite3
+from Classes import Student, Candidate, PresidentVotes, GSUOfficerVotes, FacultyOfficerVotes, Results
 
 # Setting up sqlite3 - using ':memory:' instead of a database means you can run the code as many times as you want
 # without receiving any errors. Once all code has been completed, a database can then be created to save all data
-
 conn = sqlite3.connect(":memory:")
 c = conn.cursor()
 
@@ -29,6 +29,12 @@ c.execute("""CREATE TABLE IF NOT EXISTS FacultyOfficerVotes (
 c.execute("""CREATE TABLE IF NOT EXISTS GSUOfficerVotes (
                 Username TEXT, FirstPreference TEXT NOT NULL, SecondPreference TEXT, ThirdPreference TEXT,
                 FourthPreference TEXT, FOREIGN KEY(Username) REFERENCES Student(Username)
+                )""")
+
+c.execute("""CREATE TABLE IF NOT EXISTS Results (
+                Username TEXT, Position TEXT, FirstPreference INTEGER, SecondPreference INTEGER,
+                ThirdPreference INTEGER, FourthPreference INTEGER, FOREIGN KEY(Username) REFERENCES Candidate(Username),
+                FOREIGN KEY(Position) REFERENCES Candidate(Position)
                 )""")
 
 # Adding 20 Students to Student Table
@@ -147,4 +153,47 @@ c.execute("""INSERT INTO Candidate VALUES('Catherine', 'Singleton', 'Faculty Off
 # NOTE AGAIN - the above database will not be saved unless you create a db when connecting.
 
 conn.commit()
+
+# Creating objects from SQL tables
+
+students = []
+candidates = []
+president_votes = []
+faculty_votes = []
+gsu_officer_votes =[]
+results = []
+
+c.execute("SELECT * FROM Student")
+for column in c:
+    students.append(Student(forename=column[0], surname=column[1], username=column[2], password=column[3],
+                            faculty=column[4], gender=column[5], year_group=column[6]))
+
+c.execute("SELECT * FROM Candidate")
+for column in c:
+    candidates.append(Candidate(forename=column[0], surname=column[1], position=column[2], faculty=column[3],
+                                username=column[4], gender=column[5], year_group=column[6]))
+
+c.execute("SELECT * FROM PresidentVotes")
+for column in c:
+    president_votes.append(PresidentVotes(username=column[0], first_preference=column[1],
+                                          second_preference=column[2], third_preference=column[3],
+                                          fourth_preference=column[4]))
+
+c.execute("SELECT * FROM GSUOfficerVotes")
+for column in c:
+    gsu_officer_votes.append(FacultyOfficerVotes(username=column[0], first_preference=column[1],
+                                                 second_preference=column[2], third_preference=column[3],
+                                                 fourth_preference=column[4]))
+
+c.execute("SELECT * FROM FacultyOfficerVotes")
+for column in c:
+    faculty_votes.append(FacultyOfficerVotes(username=column[0], first_preference=column[1],
+                                             second_preference=column[2], third_preference=column[3],
+                                             fourth_preference=column[4]))
+
+c.execute("SELECT * FROM Results")
+for column in c:
+    results.append(Results(username=column[0], first_preference=column[1], second_preference=column[2],
+                           third_preference=column[3], fourth_preference=column[4]))
+
 conn.close()
