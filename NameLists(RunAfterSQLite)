@@ -1,0 +1,30 @@
+from SQLite import candidates
+
+president_cand = []
+president_names = []
+
+faculty_cand = []
+eh_faculty_names = []
+es_faculty_names = []
+sb_faculty_names = []
+as_faculty_names = []
+
+officer_cands = []
+officer_names = []
+
+# Creating lists of individual candidate names so that they can chosen from each drop down box
+
+for i in candidates:
+    if i.position == "President":
+        president_cand.append(i)
+        president_names.append(i.forename+" "+i.surname)
+    elif i.position == "GSU Officer":
+        officer_names.append(i.forename+" "+i.surname)
+    elif i.position == "Faculty Officer" and i.faculty == "ES":
+        es_faculty_names.append(i.forename+" "+i.surname)
+    elif i.position == "Faculty Officer" and i.faculty == "EH":
+        eh_faculty_names.append(i.forename+" "+i.surname)
+    elif i.position == "Faculty Officer" and i.faculty == "SB":
+        sb_faculty_names.append(i.forename+" "+i.surname)
+    elif i.position == "Faculty Officer" and i.faculty == "AS":
+        as_faculty_names.append(i.forename+" "+i.surname)
