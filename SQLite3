@@ -160,7 +160,7 @@ students = []
 candidates = []
 president_votes = []
 faculty_votes = []
-gsu_officer_votes =[]
+gsu_officer_votes = []
 results = []
 
 c.execute("SELECT * FROM Student")
@@ -170,8 +170,8 @@ for column in c:
 
 c.execute("SELECT * FROM Candidate")
 for column in c:
-    candidates.append(Candidate(forename=column[0], surname=column[1], position=column[2], faculty=column[3],
-                                username=column[4], gender=column[5], year_group=column[6]))
+    candidates.append(Candidate(forename=column[0], surname=column[1], position=column[2], faculty=column[5],
+                                username=column[4], gender=column[3], year_group=column[6]))
 
 c.execute("SELECT * FROM PresidentVotes")
 for column in c:
@@ -179,17 +179,17 @@ for column in c:
                                           second_preference=column[2], third_preference=column[3],
                                           fourth_preference=column[4]))
 
-c.execute("SELECT * FROM GSUOfficerVotes")
+c.execute("SELECT * FROM FacultyOfficerVotes")
 for column in c:
     gsu_officer_votes.append(FacultyOfficerVotes(username=column[0], first_preference=column[1],
                                                  second_preference=column[2], third_preference=column[3],
                                                  fourth_preference=column[4]))
 
-c.execute("SELECT * FROM FacultyOfficerVotes")
+c.execute("SELECT * FROM GSUOfficerVotes")
 for column in c:
-    faculty_votes.append(FacultyOfficerVotes(username=column[0], first_preference=column[1],
-                                             second_preference=column[2], third_preference=column[3],
-                                             fourth_preference=column[4]))
+    faculty_votes.append(GSUOfficerVotes(username=column[0], first_preference=column[1],
+                                         second_preference=column[2], third_preference=column[3],
+                                         fourth_preference=column[4]))
 
 c.execute("SELECT * FROM Results")
 for column in c:
@@ -197,3 +197,5 @@ for column in c:
                            third_preference=column[3], fourth_preference=column[4]))
 
 conn.close()
+
+
