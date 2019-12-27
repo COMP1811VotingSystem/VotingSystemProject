@@ -6,11 +6,12 @@ class Person(ABC):
     Base class which student and candidate sub-classes will inherit from
     """
 
-    def __init__(self, forename, surname, faculty, gender):
+    def __init__(self, forename, surname, faculty, gender, year_group):
         self.forename = forename
         self.surname = surname
         self.faculty = faculty
         self.gender = gender
+        self.year_group = year_group
 
 
 class Candidate(Person):
@@ -18,10 +19,10 @@ class Candidate(Person):
     Sub-Class inheriting from Person
     """
 
-    def __init__(self, forename, surname, position, username, faculty, gender):
+    def __init__(self, forename, surname, position, username, faculty, gender, year_group):
         self.position = position
-        self.position = username
-        super().__init__(forename, surname, gender, faculty)
+        self.username = username
+        super().__init__(forename, surname, gender, faculty, year_group)
 
 
 class Student(Person):
@@ -29,11 +30,11 @@ class Student(Person):
     Sub-Class inheriting from Person
     """
 
-    def __init__(self, forename, surname, username, password, faculty, gender, has_registered=False):
+    def __init__(self, forename, surname, username, password, faculty, gender, year_group, has_registered=False):
         self.username = username
         self.__has_registered = has_registered
-        self.__password = password
-        super().__init__(forename, surname, faculty, gender)
+        self.password = password
+        super().__init__(forename, surname, faculty, gender, year_group)
 
     def get_registered(self):
 
@@ -47,46 +48,41 @@ class Student(Person):
         self.__has_registered = newvalue
 
 
-class LoginInterface(Student):
-    """
-    Login details for every student to be used when on the GUI
-    """
-
-    def __init__(self, username, password):
-        super().__init__(username, password)
-        
-    
- class Votes:
-    def __init__(self, votesID, username, position, first_preference, second_preference, third_preference, fourth_preference):
-        self.votesID = votesID
-        self.username = username
-        self.position = position
+class PresidentVotes(Student):
+    def __init__(self, username, first_preference, second_preference=None, third_preference=None,
+                 fourth_preference=None):
         self.first_preference = first_preference
         self.second_preference = second_preference
         self.third_preference = third_preference
         self.fourth_preference = fourth_preference
+        super().__init__(username)
 
 
-    def get_first_preference(self):
-        pass
+class GSUOfficerVotes(Student):
+    def __init__(self, username, first_preference, second_preference=None, third_preference=None,
+                 fourth_preference=None):
+        self.first_preference = first_preference
+        self.second_preference = second_preference
+        self.third_preference = third_preference
+        self.fourth_preference = fourth_preference
+        super().__init__(username)
 
-    def get_second_preference(self):
-        pass
 
-    def get_third_preference(self):
-        pass
+class FacultyOfficerVotes(Student):
+    def __init__(self, username, first_preference, second_preference=None, third_preference=None,
+                 fourth_preference=None):
+        self.first_preference = first_preference
+        self.second_preference = second_preference
+        self.third_preference = third_preference
+        self.fourth_preference = fourth_preference
+        super().__init__(username)
 
-    def get_fourth_preference(self):
-        pass
-        
-        
- class Results(Candidate):
-    def __init__(self, username, position, first_preference, second_preference, third_preference, fourth_preference):
-        self.username = username
-        self.position = position
-        self.first_preference = 0
-        self.second_preference = 0
-        self.third_preference = 0
-        self.fourth_preference = 0
-        super.__init__(username, position)
 
+class Results(Candidate):
+    def __init__(self, username, position, first_preference=0, second_preference=0, third_preference=0,
+                 fourth_preference=0):
+        self.first_preference = first_preference
+        self.second_preference = second_preference
+        self.third_preference = third_preference
+        self.fourth_preference = fourth_preference
+        super().__init__(username, position)
