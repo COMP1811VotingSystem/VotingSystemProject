@@ -329,6 +329,7 @@ class FacultyWindowEH:
         self.fourth_label.destroy()
         self.back_button.destroy()
         self.save_choice.destroy()
+        self.unique_label.destroy()
 
         self.third_window = ThirdWindow(self.master)
 
@@ -401,6 +402,7 @@ class FacultyWindowES:
         self.fourth_label.destroy()
         self.back_button.destroy()
         self.save_choice.destroy()
+        self.unique_label.destroy()
 
         self.third_window = ThirdWindow(self.master)
 
@@ -472,6 +474,7 @@ class FacultyWindowAS:
         self.fourth_label.destroy()
         self.back_button.destroy()
         self.save_choice.destroy()
+        self.unique_label.destroy()
 
         self.third_window = ThirdWindow(self.master)
 
@@ -543,6 +546,7 @@ class FacultyWindowSB:
         self.fourth_label.destroy()
         self.back_button.destroy()
         self.save_choice.destroy()
+        self.unique_label.destroy()
 
         self.third_window = ThirdWindow(self.master)
 
