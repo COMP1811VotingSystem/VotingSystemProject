@@ -395,7 +395,7 @@ class PresidentWindow:
 
         # Incorrect voting
         else:
-            showinfo("Incorrect Input", "You have noted incorrectly please try again")
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
             # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
@@ -595,7 +595,7 @@ class FacultyWindowEH:
 
         # Incorrect voting
         else:
-            showinfo("Incorrect Input", "You have noted incorrectly please try again")
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
             # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
@@ -796,7 +796,7 @@ class FacultyWindowES:
 
         # Incorrect voting
         else:
-            showinfo("Incorrect Input", "You have noted incorrectly please try again")
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
             # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
@@ -997,7 +997,7 @@ class FacultyWindowAS:
 
         # Incorrect voting
         else:
-            showinfo("Incorrect Input", "You have noted incorrectly please try again")
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
             # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
@@ -1198,7 +1198,7 @@ class FacultyWindowSB:
 
         # Incorrect voting
         else:
-            showinfo("Incorrect Input", "You have noted incorrectly please try again")
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
             # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
@@ -1394,7 +1394,7 @@ class OfficerWindow:
 
         # Incorrect voting
         else:
-            showinfo("Incorrect Input", "You have noted incorrectly please try again")
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
             # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
