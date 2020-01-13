@@ -32,57 +32,63 @@ class Student(Person):
 
     def __init__(self, forename, surname, username, password, faculty, gender, year_group, has_registered=False):
         self.username = username
-        self.__has_registered = has_registered
+        self.has_registered = has_registered
         self.password = password
         super().__init__(forename, surname, faculty, gender, year_group)
 
     def get_registered(self):
 
-        if self.__has_registered:
-            print(f'Student {self.forename} {self.surname} has registered to vote')
+        if self.has_registered:
+            return f'Student {self.forename} {self.surname} has registered to vote'
         else:
-            print(f'Student {self.forename} {self.surname} has not registered to vote')
+            return f'Student {self.forename} {self.surname} has not registered to vote'
 
     def set_registered(self, newvalue):
 
-        self.__has_registered = newvalue
+        self.has_registered = newvalue
 
 
-class PresidentVotes(Student):
-    def __init__(self, username, first_preference, second_preference=None, third_preference=None,
+class PresidentVotes:
+    def __init__(self, voting_id, student_username, first_preference, second_preference=None, third_preference=None,
                  fourth_preference=None):
+        self.voting_id = voting_id
+        self.student_username = student_username
         self.first_preference = first_preference
         self.second_preference = second_preference
         self.third_preference = third_preference
         self.fourth_preference = fourth_preference
-        super().__init__(username)
 
 
-class GSUOfficerVotes(Student):
-    def __init__(self, username, first_preference, second_preference=None, third_preference=None,
+class GSUOfficerVotes:
+    def __init__(self, voting_id, student_username, first_preference, second_preference=None, third_preference=None,
                  fourth_preference=None):
+        self.voting_id = voting_id
+        self.student_username = student_username
         self.first_preference = first_preference
         self.second_preference = second_preference
         self.third_preference = third_preference
         self.fourth_preference = fourth_preference
-        super().__init__(username)
 
 
-class FacultyOfficerVotes(Student):
-    def __init__(self, username, first_preference, second_preference=None, third_preference=None,
-                 fourth_preference=None):
+class FacultyOfficerVotes:
+    def __init__(self, voting_id, faculty, student_username, first_preference, second_preference=None,
+                 third_preference=None, fourth_preference=None):
+        self.voting_id = voting_id
+        self.faculty = faculty
+        self.student_username = student_username
         self.first_preference = first_preference
         self.second_preference = second_preference
         self.third_preference = third_preference
         self.fourth_preference = fourth_preference
-        super().__init__(username)
 
 
-class Results(Candidate):
-    def __init__(self, username, position, first_preference=0, second_preference=0, third_preference=0,
+class Results:
+    def __init__(self, candidate_name, position, faculty, first_preference=0, second_preference=0, third_preference=0,
                  fourth_preference=0):
+        self.position = position
+        self.faculty = faculty
+        self.candidate_name = candidate_name
         self.first_preference = first_preference
         self.second_preference = second_preference
         self.third_preference = third_preference
         self.fourth_preference = fourth_preference
-        super().__init__(username, position)
