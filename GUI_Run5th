@@ -1,12 +1,18 @@
 import tkinter as tk
+import sqlite3
 from tkinter import ttk
 from tkinter.messagebox import showinfo
 import datetime
 from SQLite import students
 from NamesLists import president_names, officer_names, es_faculty_names, sb_faculty_names, as_faculty_names
 from NamesLists import eh_faculty_names
-from Classes import PresidentVotes, GSUOfficerVotes, FacultyOfficerVotes
 from SQLiteQueries import president_main, faculty_main, officer_main
+from PIL import Image, ImageTk
+from SQLite import president_votes, faculty_votes, officer_votes
+
+# Connecting to voting database
+conn = sqlite3.connect("VotingDatabase.db")
+c = conn.cursor()
 
 # Creating global variables initially to check later that the user has not voted for a position twice
 globals()["presidential_votes"] = 0
@@ -53,9 +59,9 @@ class MainWindow:
         self.master.destroy()
 
     def new_window(self):
-        self.main_label.destroy()
-        self.vote_button.destroy()
-        self.quit_button.destroy()
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
 
         # next window
         self.second_window = SecondWindow(self.master)
@@ -66,67 +72,79 @@ class SecondWindow:
     def __init__(self, master):
         self.master = master
 
-        # todo background code goes here but focus on getting everything right first
+        self.logo = Image.open("uni_logo.jpg")
+        self.logo_render = ImageTk.PhotoImage(self.logo)
+        self.main_label2 = tk.Label(image=self.logo_render, relief="sunken")
+        self.main_label2.place(relx=0.5, rely=0.3, anchor="center")
 
         # login text
         self.login_label = tk.Label(text="Log in with your University Username and Password", bg="RoyalBlue4",
-                                    fg="white", width="48", height="2", font=("Arial", "15", "bold", "italic"))
-        self.login_label.place(relx=0.70, rely=0.25, anchor="center")
-
-        # login buttons and functionality
-        # self.username_verify = tk.StringVar()
-        # self.password_verify = tk.StringVar()
+                                    fg="white", width="48", height="2", font=("Arial", "20", "bold", "italic"))
+        self.login_label.place(relx=0.5, rely=0.5, anchor="center")
 
         # Login buttons and Labels
         self.user_label = tk.Label(text="Username", width="15", height="1", bg="RoyalBlue4",
-                                   fg="white", font=("Arial", "10", "bold"))
-        self.user_label.place(relx=0.50, rely=0.35, anchor="center")
+                                   fg="white", font=("Arial", "12", "bold"))
+        self.user_label.place(relx=0.37, rely=0.65, anchor="center")
         self.user_entry = tk.Entry(width="25", borderwidth="3", relief="sunken")
-        self.user_entry.place(relx=0.83, rely=0.35, anchor="e")
+        self.user_entry.place(relx=0.57, rely=0.65, anchor="center")
         self.password_label = tk.Label(text="Password", width="15", height="1", bg="RoyalBlue4",
-                                       fg="white", font=("Arial", "10", "bold"))
-        self.password_label.place(relx=0.5, rely=0.40, anchor="center")
+                                       fg="white", font=("Arial", "12", "bold"))
+        self.password_label.place(relx=0.37, rely=0.7, anchor="center")
+        self.password_entry = tk.Entry(width="25", borderwidth="3", relief="sunken", show="*")
+        self.password_entry.place(relx=0.57, rely=0.7, anchor="center")
 
-        # todo - add argument   show = "*" BELOW
-        self.password_entry = tk.Entry(width="25", borderwidth="3", relief="sunken")
-        self.password_entry.place(relx=0.83, rely=0.39, anchor="e")
+        # login button
         self.login_entry = tk.Button(text="Log In", height="2", width=5, command=self.check_user)
-        self.login_entry.place(relx=0.89, rely=0.37, anchor="e")
+        self.login_entry.place(relx=0.72, rely=0.675, anchor="center")
+
+        # example students
+        self.student_one = tk.Label(text="Student who can login: Username = mb3520e     "
+                                         "Password = PasswordBarnett",
+                                    bg="RoyalBlue4", fg="white", width="65",
+                                    font=("Arial", "12", "italic"))
+        self.student_one.place(relx=0.5, rely=0.05, anchor="center")
+        self.student_two = tk.Label(text="Student without voting rights: Username = dc3045g     "
+                                         "Password = ChristDante",
+                                    bg="RoyalBlue4", fg="white", width="65",
+                                    font=("Arial", "12", "italic"))
+        self.student_two.place(relx=0.5, rely=0.10, anchor="center")
 
     def check_user(self):
-        # todo create code in the for loop that checks that the user has not already voted, using the voting SQLite
-        #  tables. If they have voted then bring up a message saying they cannot vote again.
         self.valid_user = False
+        self.has_voted = False
         self.password_attempt = self.password_entry.get()
         self.username_attempt = self.user_entry.get()
 
         for student in students:
-            if student.username == self.username_attempt and student.password == self.password_attempt:
-                # check that student is registered to vote or note
-                if student.has_registered:
-                    self.valid_user = True
-                    self.new_window()
-                    globals()["student_faculty"] = student.faculty
-                    globals()["student_username"] = student.username
-                else:
-                    # todo change the not voting message so that it says please contact member of staff. Have as label?
-                    self.valid_user = True
-                    showinfo("Window", "Sorry {}, you are not registered to vote. "
-                                       "Please contact the GSU to request permission to vote".format(student.forename))
-        if not self.valid_user:
+            for user in president_votes:
+                if student.username == self.username_attempt and student.password == self.password_attempt:
+                    # check that user has not already voted
+                    if not (self.username_attempt == user.student_username):
+                        self.has_voted = True
+                        # check that student is registered to vote or note
+                        if student.has_registered:
+                            self.valid_user = True
+                            self.new_window()
+                            globals()["student_faculty"] = student.faculty
+                            globals()["student_username"] = student.username
+                        else:
+                            self.valid_user = True
+                            showinfo("Window", "Sorry {}, you are not registered to vote. "
+                                                "Please contact the GSU to request permission to vote".format(student.forename))
+        if not self.has_voted:
+            self.password_entry.delete(0, "end")
+            self.user_entry.delete(0, "end")
+            showinfo("Window", "Sorry, you cannot vote more than once")
+        elif not self.valid_user:
             self.password_entry.delete(0, "end")
             self.user_entry.delete(0, "end")
             showinfo("Incorrect Details", "Incorrect password or username. Please try again")
 
     def new_window(self):
-        # todo possibly print success message to let user know that login passed
-        self.login_label.destroy()
-        self.user_label.destroy()
-        self.user_entry.destroy()
-        self.password_entry.destroy()
-        self.password_label.destroy()
-        self.login_entry.destroy()
-
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
         # next window
         self.third_window = ThirdWindow(self.master)
 
@@ -135,13 +153,7 @@ class ThirdWindow:
     def __init__(self, master):
         self.master = master
 
-        # todo create a button for user to logout with takes them back to the page before. Button in top left corner
-
-        # todo add a photo above the below label linked with the GSU i.e their logo
-
-        # todo add commands to every button that takes the user to a separate interface depending on the button pressed
-
-        self.choose_label = tk.Label(text="Choose your GSU Officer!", bg="RoyalBlue4", width="100",
+        self.choose_label = tk.Label(text="Choose your GSU Officers!", bg="RoyalBlue4", width="100",
                                      height="4", fg="white", font=("Arial", "40", "bold", "italic"))
         self.choose_label.place(relx=0.5, rely=0.50, anchor="center")
 
@@ -157,25 +169,25 @@ class ThirdWindow:
         self.back_button = tk.Button(text="Sign Out", height="1", width=10, command=self.go_back)
         self.back_button.place(relx=0.06, rely=0.03, anchor="center")
 
+        self.logo = Image.open("uni_logo.jpg")
+        self.logo_render = ImageTk.PhotoImage(self.logo)
+        self.main_label2 = tk.Label(image=self.logo_render, relief="sunken")
+        self.main_label2.place(relx=0.5, rely=0.25, anchor="center")
+
     def go_back(self):
-        self.choose_label.destroy()
-        self.president_button.destroy()
-        self.officer_button.destroy()
-        self.faculty_button.destroy()
-        self.back_button.destroy()
-        # todo possibly create a new separate window/class to thank the user for voting and if another user wants
-        #  to vote then they need to restart the program. Otherwise a student cannot vote correctly
-        self.logout_window = SecondWindow(self.master)
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
+        self.signout_window = SignOutWindow(self.master)
 
     def vote_president(self):
         global presidential_votes
 
         if not presidential_votes:
-            self.choose_label.destroy()
-            self.president_button.destroy()
-            self.officer_button.destroy()
-            self.faculty_button.destroy()
-            self.back_button.destroy()
+            self.list = root.place_slaves()
+            for i in self.list:
+                i.destroy()
             # Next window class
             self.president_window = PresidentWindow(self.master)
         else:
@@ -185,11 +197,10 @@ class ThirdWindow:
         global officer_votes
 
         if not officer_votes:
-            self.choose_label.destroy()
-            self.president_button.destroy()
-            self.officer_button.destroy()
-            self.faculty_button.destroy()
-            self.back_button.destroy()
+            self.list = root.place_slaves()
+            for i in self.list:
+                i.destroy()
+
             self.officer_window = OfficerWindow(self.master)
         else:
             showinfo("window", "You cannot vote for this position again. Please try another position")
@@ -198,11 +209,9 @@ class ThirdWindow:
         global faculty_votes
 
         if not faculty_votes:
-            self.choose_label.destroy()
-            self.president_button.destroy()
-            self.officer_button.destroy()
-            self.faculty_button.destroy()
-            self.back_button.destroy()
+            self.list = root.place_slaves()
+            for i in self.list:
+                i.destroy()
 
             # Code checks what faculty the user is in and then takes them to the correct page
             global student_faculty
@@ -218,6 +227,33 @@ class ThirdWindow:
             showinfo("window", "You cannot vote for this position again. Please try another position")
 
 
+class SignOutWindow:
+
+    def __init__(self, master):
+        self.master = master
+
+        self.thank_you = tk.Label(text="Thank you!", bg="RoyalBlue4", width="50", height="3",
+                                  fg="white", font=("Arial", "50", "bold", "italic"))
+        self.thank_you.place(relx=0.5, rely=0.2, anchor="center")
+        self.label = tk.Label(text="For entering the GSU Voting System",
+                              bg="RoyalBlue4", width="40", height="3", fg="white",
+                              font=("Arial", "35", "bold", "italic"))
+        self.label.place(relx=0.5, rely=0.4, anchor="center")
+        self.info_label = tk.Label(text="If you are another student who would like to vote,",
+                                   bg="RoyalBlue4", width="40", height="2", fg="white",
+                                   font=("Arial", "20", "bold", "italic"))
+        self.info_label.place(relx=0.5, rely=0.6, anchor="center")
+        self.info_label_two = tk.Label(text="please close this program and login again to vote correctly",
+                                       bg="RoyalBlue4", width="45", height="2", fg="white",
+                                       font=("Arial", "20", "bold", "italic"))
+        self.info_label_two.place(relx=0.5, rely=0.67, anchor="center")
+        self.quit_button = tk.Button(text="Quit", height="3", width=30, command=self.close_window)
+        self.quit_button.place(relx=0.5, rely=0.85, anchor="center")
+
+    def close_window(self):
+        self.master.destroy()
+
+
 class PresidentWindow:
 
     def __init__(self, master):
@@ -227,16 +263,30 @@ class PresidentWindow:
         self.president_label = tk.Label(text="GSU President!", bg="RoyalBlue4", width="100",
                                         height="4", fg="white", font=("Arial", "40", "bold", "italic"))
         self.president_label.place(relx=0.5, rely=0.10, anchor="center")
-
         self.president_two_label = tk.Label(text="Please rank each candidate in order of preference",
                                             bg="RoyalBlue4", width="55", height="4", fg="white",
                                             font=("Arial", "15", "bold", "italic"))
         self.president_two_label.place(relx=0.5, rely=0.2, anchor="center")
 
-        # todo add four photos to GUI showing icons off candidates
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
 
         # All combo boxes
-
         self.first_box = ttk.Combobox(values=president_names)
         self.first_box.place(relx=0.15, rely=0.75, anchor="center")
         self.second_box = ttk.Combobox(values=president_names)
@@ -282,8 +332,6 @@ class PresidentWindow:
                     self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
                 self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
                 if self.msgbox == "yes":
-                    # todo create functionality to show that the input has been saved
-                    # todo review notes from to do list about creating a variable to check what user has voted for
                     globals()["presidential_votes"] = 1
                     # SQLite Query that saves choices straight into relevant table
                     president_main(username=student_username, first_pref=self.first_choice,
@@ -316,7 +364,6 @@ class PresidentWindow:
                     president_main(username=student_username, first_pref=self.first_choice,
                                    second_pref=self.second_choice)
                     self.go_back()
-
             else:
                 showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
 
@@ -396,21 +443,12 @@ class PresidentWindow:
         # Incorrect voting
         else:
             showinfo("Incorrect Input", "You have voted incorrectly please try again")
-            # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
-        self.president_label.destroy()
-        self.president_two_label.destroy()
-        self.first_box.destroy()
-        self.second_box.destroy()
-        self.third_box.destroy()
-        self.fourth_box.destroy()
-        self.first_label.destroy()
-        self.second_label.destroy()
-        self.third_label.destroy()
-        self.fourth_label.destroy()
-        self.back_button.destroy()
-        self.save_choice.destroy()
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
         self.third_window = ThirdWindow(self.master)
 
 
@@ -433,7 +471,26 @@ class FacultyWindowEH:
                                      width="75", height="4", fg="white", font=("Arial", "25", "bold", "italic"))
         self.unique_label.place(relx=0.5, rely=0.68, anchor="center")
 
-        # todo add four photos to GUI showing icons off candidates
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
 
         # All combo boxes
         self.first_box = ttk.Combobox(values=eh_faculty_names)
@@ -481,8 +538,6 @@ class FacultyWindowEH:
                     self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
                 self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
                 if self.msgbox == "yes":
-                    # todo create functionality to show that the input has been saved
-                    # todo review notes from to do list about creating a variable to check what user has voted for
                     globals()["faculty_votes"] = 1
                     # SQLite Query that saves choices straight into relevant table
                     faculty_main(faculty="EH", username=student_username, first_pref=self.first_choice,
@@ -596,22 +651,12 @@ class FacultyWindowEH:
         # Incorrect voting
         else:
             showinfo("Incorrect Input", "You have voted incorrectly please try again")
-            # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
-        self.faculty_label.destroy()
-        self.faculty_two_label.destroy()
-        self.first_box.destroy()
-        self.second_box.destroy()
-        self.third_box.destroy()
-        self.fourth_box.destroy()
-        self.first_label.destroy()
-        self.second_label.destroy()
-        self.third_label.destroy()
-        self.fourth_label.destroy()
-        self.back_button.destroy()
-        self.save_choice.destroy()
-        self.unique_label.destroy()
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
         self.third_window = ThirdWindow(self.master)
 
 
@@ -634,8 +679,6 @@ class FacultyWindowES:
                                      width="75", height="4", fg="white", font=("Arial", "25", "bold", "italic"))
         self.unique_label.place(relx=0.5, rely=0.68, anchor="center")
 
-        # todo add four photos to GUI showing icons off candidates
-
         # All combo boxes
         self.first_box = ttk.Combobox(values=es_faculty_names)
         self.first_box.place(relx=0.15, rely=0.75, anchor="center")
@@ -645,6 +688,24 @@ class FacultyWindowES:
         self.third_box.place(relx=0.625, rely=0.75, anchor="center")
         self.fourth_box = ttk.Combobox(values=es_faculty_names)
         self.fourth_box.place(relx=0.85, rely=0.75, anchor="center")
+
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
 
         # Preference labels
         self.first_label = tk.Label(text="1st Preference", bg="RoyalBlue4", width="12",
@@ -682,8 +743,6 @@ class FacultyWindowES:
                     self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
                 self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
                 if self.msgbox == "yes":
-                    # todo create functionality to show that the input has been saved
-                    # todo review notes from to do list about creating a variable to check what user has voted for
                     globals()["faculty_votes"] = 1
                     # SQLite Query that saves choices straight into relevant table
                     faculty_main(faculty="ES", username=student_username, first_pref=self.first_choice,
@@ -797,22 +856,12 @@ class FacultyWindowES:
         # Incorrect voting
         else:
             showinfo("Incorrect Input", "You have voted incorrectly please try again")
-            # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
-        self.faculty_label.destroy()
-        self.faculty_two_label.destroy()
-        self.first_box.destroy()
-        self.second_box.destroy()
-        self.third_box.destroy()
-        self.fourth_box.destroy()
-        self.first_label.destroy()
-        self.second_label.destroy()
-        self.third_label.destroy()
-        self.fourth_label.destroy()
-        self.back_button.destroy()
-        self.save_choice.destroy()
-        self.unique_label.destroy()
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
         self.third_window = ThirdWindow(self.master)
 
 
@@ -835,7 +884,23 @@ class FacultyWindowAS:
                                      width="75", height="4", fg="white", font=("Arial", "25", "bold", "italic"))
         self.unique_label.place(relx=0.5, rely=0.68, anchor="center")
 
-        # todo add four photos to GUI showing icons off candidates
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
 
         # All combo boxes
         self.first_box = ttk.Combobox(values=as_faculty_names)
@@ -883,8 +948,6 @@ class FacultyWindowAS:
                     self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
                 self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
                 if self.msgbox == "yes":
-                    # todo create functionality to show that the input has been saved
-                    # todo review notes from to do list about creating a variable to check what user has voted for
                     globals()["faculty_votes"] = 1
                     # SQLite Query that saves choices straight into relevant table
                     faculty_main(faculty="AS", username=student_username, first_pref=self.first_choice,
@@ -998,22 +1061,12 @@ class FacultyWindowAS:
         # Incorrect voting
         else:
             showinfo("Incorrect Input", "You have voted incorrectly please try again")
-            # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
-        self.faculty_label.destroy()
-        self.faculty_two_label.destroy()
-        self.first_box.destroy()
-        self.second_box.destroy()
-        self.third_box.destroy()
-        self.fourth_box.destroy()
-        self.first_label.destroy()
-        self.second_label.destroy()
-        self.third_label.destroy()
-        self.fourth_label.destroy()
-        self.back_button.destroy()
-        self.save_choice.destroy()
-        self.unique_label.destroy()
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
         self.third_window = ThirdWindow(self.master)
 
 
@@ -1036,7 +1089,23 @@ class FacultyWindowSB:
                                      width="75", height="4", fg="white", font=("Arial", "25", "bold", "italic"))
         self.unique_label.place(relx=0.5, rely=0.68, anchor="center")
 
-        # todo add four photos to GUI showing icons off candidates
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
 
         # All combo boxes
         self.first_box = ttk.Combobox(values=sb_faculty_names)
@@ -1084,8 +1153,6 @@ class FacultyWindowSB:
                     self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
                 self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
                 if self.msgbox == "yes":
-                    # todo create functionality to show that the input has been saved
-                    # todo review notes from to do list about creating a variable to check what user has voted for
                     globals()["faculty_votes"] = 1
                     # SQLite Query that saves choices straight into relevant table
                     faculty_main(faculty="SB", username=student_username, first_pref=self.first_choice,
@@ -1199,22 +1266,12 @@ class FacultyWindowSB:
         # Incorrect voting
         else:
             showinfo("Incorrect Input", "You have voted incorrectly please try again")
-            # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
-        self.faculty_label.destroy()
-        self.faculty_two_label.destroy()
-        self.first_box.destroy()
-        self.second_box.destroy()
-        self.third_box.destroy()
-        self.fourth_box.destroy()
-        self.first_label.destroy()
-        self.second_label.destroy()
-        self.third_label.destroy()
-        self.fourth_label.destroy()
-        self.back_button.destroy()
-        self.save_choice.destroy()
-        self.unique_label.destroy()
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
         self.third_window = ThirdWindow(self.master)
 
 
@@ -1233,10 +1290,25 @@ class OfficerWindow:
                                           font=("Arial", "15", "bold", "italic"))
         self.officer_two_label.place(relx=0.5, rely=0.2, anchor="center")
 
-        # todo add four photos to GUI showing icons off candidates
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
 
         # All combo boxes
-
         self.first_box = ttk.Combobox(values=officer_names)
         self.first_box.place(relx=0.15, rely=0.75, anchor="center")
         self.second_box = ttk.Combobox(values=officer_names)
@@ -1282,8 +1354,6 @@ class OfficerWindow:
                     self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
                 self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
                 if self.msgbox == "yes":
-                    # todo create functionality to show that the input has been saved
-                    # todo review notes from to do list about creating a variable to check what user has voted for
                     globals()["officer_votes"] = 1
                     # SQLite Query that saves choices straight into relevant table
                     officer_main(username=student_username, first_pref=self.first_choice,
@@ -1395,21 +1465,12 @@ class OfficerWindow:
         # Incorrect voting
         else:
             showinfo("Incorrect Input", "You have voted incorrectly please try again")
-            # todo enter a message in box that reminds the user how to vote correctly i.e the rules
 
     def go_back(self):
-        self.officer_label.destroy()
-        self.officer_two_label.destroy()
-        self.first_box.destroy()
-        self.second_box.destroy()
-        self.third_box.destroy()
-        self.fourth_box.destroy()
-        self.first_label.destroy()
-        self.second_label.destroy()
-        self.third_label.destroy()
-        self.fourth_label.destroy()
-        self.back_button.destroy()
-        self.save_choice.destroy()
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
         self.third_window = ThirdWindow(self.master)
 
 
