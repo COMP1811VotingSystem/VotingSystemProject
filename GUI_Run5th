@@ -8,7 +8,7 @@ from NamesLists import president_names, officer_names, es_faculty_names, sb_facu
 from NamesLists import eh_faculty_names
 from SQLiteQueries import president_main, faculty_main, officer_main
 from PIL import Image, ImageTk
-from SQLite import president_votes, faculty_votes, officer_votes
+
 
 # Connecting to voting database
 conn = sqlite3.connect("VotingDatabase.db")
@@ -117,26 +117,19 @@ class SecondWindow:
         self.username_attempt = self.user_entry.get()
 
         for student in students:
-            for user in president_votes:
-                if student.username == self.username_attempt and student.password == self.password_attempt:
-                    # check that user has not already voted
-                    if not (self.username_attempt == user.student_username):
-                        self.has_voted = True
-                        # check that student is registered to vote or note
-                        if student.has_registered:
-                            self.valid_user = True
-                            self.new_window()
-                            globals()["student_faculty"] = student.faculty
-                            globals()["student_username"] = student.username
-                        else:
-                            self.valid_user = True
-                            showinfo("Window", "Sorry {}, you are not registered to vote. "
-                                                "Please contact the GSU to request permission to vote".format(student.forename))
-        if not self.has_voted:
-            self.password_entry.delete(0, "end")
-            self.user_entry.delete(0, "end")
-            showinfo("Window", "Sorry, you cannot vote more than once")
-        elif not self.valid_user:
+            if student.username == self.username_attempt and student.password == self.password_attempt:
+                # check that student is registered to vote or note
+                if student.has_registered:
+                    self.valid_user = True
+                    self.new_window()
+                    globals()["student_faculty"] = student.faculty
+                    globals()["student_username"] = student.username
+                else:
+                    self.valid_user = True
+                    showinfo("Window", "Sorry {}, you are not registered to vote. "
+                             "Please contact the GSU to request permission to vote".format(student.forename))
+
+        if not self.valid_user:
             self.password_entry.delete(0, "end")
             self.user_entry.delete(0, "end")
             showinfo("Incorrect Details", "Incorrect password or username. Please try again")
