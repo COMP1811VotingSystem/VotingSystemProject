@@ -1,0 +1,89 @@
+import sqlite3
+from Classes import FacultyOfficerVotes, PresidentVotes, GSUOfficerVotes, Results
+import pandas as pd
+
+conn = sqlite3.connect("VotingDatabase.db")
+c = conn.cursor()
+
+president_results = []
+
+
+class PresidentResults:
+
+    def __init__(self, full_name, first=0, second=0, third=0, fourth=0):
+        self.full_name = full_name
+        self.first = first
+        self.second = second
+        self.third = third
+        self.fourth = fourth
+
+
+c.execute("SELECT Forename, Surname  FROM Candidate WHERE Position = 'President'")
+for x in c:
+    president_results.append(PresidentResults(full_name=x[0]+" "+x[1]))
+
+# todo I have made progress and just need to find a way to make the code below reusable so that I just change it
+#  for each preference and append it to a list correctly. Will need to call additional arguments
+
+
+def president_winner(cand_one, cand_two, cand_three, cand_four):
+    c.execute("SELECT FirstPreference FROM PresidentVotes")
+    for names in c:
+        if cand_one in names:
+            for x in president_results:
+                if x.full_name == cand_one:
+                    x.first += 1
+
+        elif cand_two in names:
+            for x in president_results:
+                if x.full_name == cand_two:
+                    x.first += 1
+
+        elif cand_three in names:
+            for x in president_results:
+                if x.full_name == cand_three:
+                    x.first += 1
+
+        elif cand_four in names:
+            for x in president_results:
+                if x.full_name == cand_four:
+                    x.first += 1
+
+
+president_winner("Indi Franklin", "Andrei Keely", "Esther Barracks", "Ryan Hays")
+
+for x in president_results:
+    print(x.first)
+
+
+
+
+
+
+
+
+def create_obj(name, position, faculty, voting_list):
+    """
+    :param name: Name of the candidate as a string
+    :param position: Position of the candidate as a string
+    :param faculty: Faculty of the candidate as a string
+    :param voting_list: Voting objects saved as a list
+    :return: Iterates through the voting list and creates an instance of the Results class
+    """
+    first = 0
+    second = 0
+    third = 0
+    fourth = 0
+
+    for column in voting_list:
+        if column.first_preference == name:
+            first += 1
+        elif column.second_preference == name:
+            second += 1
+        elif column.third_preference == name:
+            third += 1
+        elif column.fourth_preference == name:
+            fourth += 1
+
+    return Results(name, position, faculty, first, second, third, fourth)
+    #return list([name, position, faculty, first, second, third, fourth])
