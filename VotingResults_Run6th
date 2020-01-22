@@ -1,239 +1,108 @@
 import sqlite3
-from sqlite3 import Error
-from Classes import FacultyOfficerVotes, PresidentVotes, GSUOfficerVotes, Results
-import pandas as pd
+from abc import ABC
 
-# Connecting database
 conn = sqlite3.connect("VotingDatabase.db")
 c = conn.cursor()
 
-# Creating lists to create instances of the voting classes
-president_votes = []
-faculty_votes = []
-officer_votes = []
-results = []
-
-# Mapping all voting tables to voting objects to iterate through
-c.execute("SELECT * FROM PresidentVotes")
-for column in c:
-    president_votes.append(PresidentVotes(voting_id=column[0], student_username=column[1], first_preference=column[2],
-                                          second_preference=column[3], third_preference=column[4],
-                                          fourth_preference=column[5]))
-c.execute("SELECT * FROM GSUOfficerVotes")
-for column in c:
-    officer_votes.append(GSUOfficerVotes(voting_id=column[0], student_username=column[1], first_preference=column[2],
-                                         second_preference=column[3], third_preference=column[4],
-                                         fourth_preference=column[5]))
-c.execute("SELECT * FROM FacultyOfficerVotes")
-for column in c:
-    faculty_votes.append(FacultyOfficerVotes(voting_id=column[0], faculty=column[1], student_username=column[2],
-                                             first_preference=column[3], second_preference=column[4],
-                                             third_preference=column[5], fourth_preference=column[6]))
-conn.close()
+president_results = []
+officer_results = []
+faculty_results = []
 
 
-def create_obj(name, position, faculty, voting_list):
+# Abstract class used as for inheritance into each position class shown below.
+class CandidateResults(ABC):
+    def __init__(self, full_name, faculty, first=0, second=0, third=0, fourth=0):
+        self.full_name = full_name
+        self.faculty = faculty
+        self.first = first
+        self.second = second
+        self.third = third
+        self.fourth = fourth
+
+
+class PresidentResults(CandidateResults):
+    def __init__(self, full_name, faculty, first=0, second=0, third=0, fourth=0):
+        super().__init__(full_name, faculty, first, second, third, fourth)
+
+
+class OfficerResults(CandidateResults):
+    def __init__(self, full_name, faculty, first=0, second=0, third=0, fourth=0):
+        super().__init__(full_name, faculty, first, second, third, fourth)
+
+
+class FacultyResults(CandidateResults):
+    def __init__(self, full_name, faculty, first=0, second=0, third=0, fourth=0):
+        super().__init__(full_name, faculty, first, second, third, fourth)
+
+
+c.execute("SELECT Forename, Surname, Faculty FROM Candidate WHERE Position = 'President'")
+for x in c:
+    president_results.append(PresidentResults(full_name=x[0]+" "+x[1], faculty=x[2]))
+
+c.execute("SELECT Forename, Surname, Faculty FROM Candidate WHERE Position = 'GSU Officer'")
+for x in c:
+    officer_results.append(OfficerResults(full_name=x[0]+" "+x[1], faculty=x[2]))
+
+c.execute("SELECT Forename, Surname, Faculty FROM Candidate WHERE Position = 'Faculty Officer'")
+for x in c:
+    faculty_results.append(FacultyResults(full_name=x[0]+" "+x[1], faculty=x[2]))
+
+
+def president_winner(cand_one, cand_two, cand_three, cand_four, sql_one,
+                     sql_two, voting_list, attr):
     """
-    :param name: Name of the candidate as a string
-    :param position: Position of the candidate as a string
-    :param faculty: Faculty of the candidate as a string
-    :param voting_list: Voting objects saved as a list
-    :return: Iterates through the voting list and creates an instance of the Results class
+    :param cand_*: name of each candidate in the order they are in the president_results list
+    :param sql_one: SQL name of the column within a table
+    :param sql_two: SQL name of the table
+    :param voting_list: list which is an actual object
+    :param attr: specific preference within the list of candidate objects
+    :return: counts votes for each person and adds them to the list of objects
     """
-    first = 0
-    second = 0
-    third = 0
-    fourth = 0
+    counter_one = 0
+    counter_two = 0
+    counter_three = 0
+    counter_four = 0
 
-    for column in voting_list:
-        if column.first_preference == name:
-            first += 1
-        elif column.second_preference == name:
-            second += 1
-        elif column.third_preference == name:
-            third += 1
-        elif column.fourth_preference == name:
-            fourth += 1
+    c.execute(f"SELECT {sql_one} FROM {sql_two}")
+    for names in c:
+        if cand_one in names:
+            for x in voting_list:
+                if x.full_name == cand_one:
+                    counter_one +=1
+                    setattr(x, attr, counter_one)
 
-    return Results(name, position, faculty, first, second, third, fourth)
-    #return list([name, position, faculty, first, second, third, fourth])
+        elif cand_two in names:
+            for x in voting_list:
+                if x.full_name == cand_two:
+                    counter_two += 1
+                    setattr(x, attr, counter_two)
 
-indi_franklin = create_obj("Indi Franklin", "President", "SB", president_votes)
-andrei_keely = create_obj("Andrei Keely", "President", "SB", president_votes)
-esther_barracks = create_obj("Esther Barracks", "President", "ES", president_votes)
-ryan_hays = create_obj("Ryan Hays", "President", "EH", president_votes)
+        elif cand_three in names:
+            for x in voting_list:
+                if x.full_name == cand_three:
+                    counter_three += 1
+                    setattr(x, attr, counter_three)
 
-# GSU Officers
-angela_schneider = create_obj("Angela Schneider", "GSU Officer", "EH", officer_votes)
-craig_gibson = create_obj("Craig Gibson", "GSU Officer", "EH", officer_votes)
-sade_guy = create_obj("Sade Guy", "GSU Officer", "SB", officer_votes)
-athena_clay = create_obj("Athena Clay", "GSU Officer", "EH", officer_votes)
-audrey_cortez = create_obj("Audrey Cortez", "GSU Officer", "EH", officer_votes)
-jon_hook = create_obj("Jon Hook", "GSU Officer", "ES", officer_votes)
-ryan_oneil = create_obj("Ryan Oneil", "GSU Officer", "SB", officer_votes)
-ethan_roberts = create_obj("Ethan Roberts", "GSU Officer", "SB", officer_votes)
-ross_hodge = create_obj("Ross Hodge", "GSU Officer", "EH", officer_votes)
-jasmine_hancock = create_obj("Jasmine Hancock", "GSU Officer", "ES", officer_votes)
-samuel_abotts = create_obj("Samuel Abotts", "GSU Officer", "AS", officer_votes)
-aimee_sahara = create_obj("Aimee Sahara", "GSU Officer", "SB", officer_votes)
-
-# Faculty Officers
-anthony_nunez = create_obj("Anthony Nunez", "Faculty Officer", "EH", faculty_votes)
-kirby_hicks = create_obj("Kirby Hicks", "Faculty Officer", "EH", faculty_votes)
-greyson_john = create_obj("Greyson John", "Faculty Officer", "EH", faculty_votes)
-grady_graham = create_obj("Grady Graham", "Faculty Officer", "EH", faculty_votes)
-imran_needham = create_obj("Imran Needham", "Faculty Officer", "EH", faculty_votes)
-andy_collins = create_obj("Andy Collins", "Faculty Officer", "EH", faculty_votes)
-tye_austin = create_obj("Tye Austin", "Faculty Officer", "EH", faculty_votes)
-shayna_matthews = create_obj("Shayna Matthews", "Faculty Officer", "EH", faculty_votes)
-sofia_gould = create_obj("Sofia Gould", "Faculty Officer", "EH", faculty_votes)
-gianni_foreman = create_obj("Gianni Foreman", "Faculty Officer", "EH", faculty_votes)
-nadia_ratcliffe = create_obj("Nadia Ratcliffe", "Faculty Officer", "EH", faculty_votes)
-kester_spooner = create_obj("Kester Spooner", "Faculty Officer", "EH", faculty_votes)
-louisa_ray = create_obj("Louisa Ray", "Faculty Officer", "EH", faculty_votes)
-daisy_oneil = create_obj("Daisy Oneil", "Faculty Officer", "EH", faculty_votes)
-ayra_davis = create_obj("Ayra Davis", "Faculty Officer", "EH", faculty_votes)
-ashlyn_ronald = create_obj("Ashlyn Ronald", "Faculty Officer", "EH", faculty_votes)
-
-xavier_alonsa = create_obj("Xavier Alonso", "Faculty Officer", "ES", faculty_votes)
-jorge_sinclair = create_obj("Jorge Sinclair", "Faculty Officer", "ES", faculty_votes)
-sammy_rush = create_obj("Sammy Rush", "Faculty Officer", "ES", faculty_votes)
-alfred_soto = create_obj("Alfred Soto", "Faculty Officer", "ES", faculty_votes)
-giovanni_santos = create_obj("Giovanni Santos", "Faculty Officer", "ES", faculty_votes)
-artur_ramos = create_obj("Artur Ramos", "Faculty Officer", "ES", faculty_votes)
-denzel_curry = create_obj("Denzel Curry", "Faculty Officer", "ES", faculty_votes)
-henry_weber = create_obj("Henry Weber", "Faculty Officer", "ES", faculty_votes)
-ameer_khan = create_obj("Ameer Khan", "Faculty Officer", "ES", faculty_votes)
-dale_escobar = create_obj("Dale Escobar", "Faculty Officer", "ES", faculty_votes)
-april_higgs = create_obj("April Higgs", "Faculty Officer", "ES", faculty_votes)
-gina_nixon = create_obj("Gina Nixon", "Faculty Officer", "ES", faculty_votes)
-taiba_weissv = create_obj("Taiba Weiss", "Faculty Officer", "ES", faculty_votes)
-tess_lu = create_obj("Tess Lu", "Faculty Officer", "ES", faculty_votes)
-naima_mansell = create_obj("Naima Mansell", "Faculty Officer", "ES", faculty_votes)
-ellie_irving = create_obj("Ellie Irving", "Faculty Officer", "ES", faculty_votes)
-
-lacey_may = create_obj("Lacey May", "Faculty Officer", "SB", faculty_votes)
-asma_lindsey = create_obj("Asma Lindsey", "Faculty Officer", "SB", faculty_votes)
-tulisa_halliday = create_obj("Tulisa Halliday", "Faculty Officer", "SB", faculty_votes)
-helena_martinez = create_obj("Helena Martinez", "Faculty Officer", "SB", faculty_votes)
-eshaan_imad = create_obj("Eshaan Imad", "Faculty Officer", "SB", faculty_votes)
-daisy_simpson = create_obj("Daisy Simpson", "Faculty Officer", "SB", faculty_votes)
-anita_johnson = create_obj("Anita Johnson", "Faculty Officer", "SB", faculty_votes)
-william_stokes = create_obj("William Stokes", "Faculty Officer", "SB", faculty_votes)
-brandon_lee = create_obj("Brandon Lee", "Faculty Officer", "SB", faculty_votes)
-chay_cope = create_obj("Chay Cope", "Faculty Officer", "SB", faculty_votes)
-robert_parlour = create_obj("Robert Parlour", "Faculty Officer", "SB", faculty_votes)
-pearce_floyd = create_obj("Pearce Floyd", "Faculty Officer", "SB", faculty_votes)
-henry_potter = create_obj("Henry Potter", "Faculty Officer", "SB", faculty_votes)
-tyriq_kinney = create_obj("Tyriq Kinney", "Faculty Officer", "SB", faculty_votes)
-harry_hibbert = create_obj("Harry Hibbert", "Faculty Officer", "SB", faculty_votes)
-trey_villarreal = create_obj("Trey Villarreal", "Faculty Officer", "SB", faculty_votes)
-
-nasir_castro = create_obj("Nasir Castro", "Faculty Officer", "AS", faculty_votes)
-tyson_baxter = create_obj("Tyson Baxter", "Faculty Officer", "AS", faculty_votes)
-cameron_currant = create_obj("Cameron Currant", "Faculty Officer", "AS", faculty_votes)
-waseem_ahmed = create_obj("Waseem Ahmed", "Faculty Officer", "AS", faculty_votes)
-clarke_smith = create_obj("Clarke Smith", "Faculty Officer", "AS", faculty_votes)
-loretta_barnett = create_obj("Loretta Barnett", "Faculty Officer", "AS", faculty_votes)
-ingrid_allen = create_obj("Ingrid Allen", "Faculty Officer", "AS", faculty_votes)
-stacey_hops = create_obj("Stacey Hops", "Faculty Officer", "AS", faculty_votes)
-kiana_reeves = create_obj("Kiana Reeves", "Faculty Officer", "AS", faculty_votes)
-luna_barclay = create_obj("Luna Barclay", "Faculty Officer", "AS", faculty_votes)
-gabriele_lucero = create_obj("Gabriele Lucero", "Faculty Officer", "AS", faculty_votes)
-aisling_spencer = create_obj("Aisling Spencer", "Faculty Officer", "AS", faculty_votes)
-lilly_cocks = create_obj("Lilly Cocks", "Faculty Officer", "AS", faculty_votes)
-yasmine_pena = create_obj("Yasmine Pena", "Faculty Officer", "AS", faculty_votes)
-catherine_singleton = create_obj("Catherine Singleton", "Faculty Officer", "AS", faculty_votes)
-lincoln_thompson = create_obj("Lincoln Thompson", "Faculty Officer", "AS", faculty_votes)
+        elif cand_four in names:
+            for x in voting_list:
+                if x.full_name == cand_four:
+                    counter_four += 1
+                    setattr(x, attr, counter_four)
 
 
-# Functions to calculate the winners of each position
+president_winner("Indi Franklin", "Andrei Keely", "Esther Barracks",
+                 "Ryan Hays", "FirstPreference", "PresidentVotes",
+                 president_results, "first")
+president_winner("Indi Franklin", "Andrei Keely", "Esther Barracks",
+                 "Ryan Hays", "SecondPreference", "PresidentVotes",
+                 president_results, "second")
+president_winner("Indi Franklin", "Andrei Keely", "Esther Barracks",
+                 "Ryan Hays", "ThirdPreference", "PresidentVotes",
+                 president_results, "third")
+president_winner("Indi Franklin", "Andrei Keely", "Esther Barracks",
+                 "Ryan Hays", "FourthPreference", "PresidentVotes",
+                 president_results, "fourth")
 
 
-def find_president_winner():
-    # global pres_first_preference
-    globals()["first_preference_winner"] = ""
-    globals()["second_preference_winner"] = ""
-    globals()["third_preference_winner"] = ""
-    globals()["fourth_preference_winner"] = ""
-
-    # If Indi Franklin was first preference
-    if (indi_franklin.first_preference > andrei_keely.first_preference and indi_franklin.first_preference >
-            esther_barracks.first_preference and indi_franklin.first_preference > ryan_hays.first_preference):
-        globals()["first_preference_winner"] = indi_franklin
-    # If Andrei was first preference
-    elif (andrei_keely.first_preference > indi_franklin.first_preference and andrei_keely.first_preference >
-          esther_barracks.first_preference and andrei_keely.first_preference > ryan_hays.first_preference):
-        globals()["first_preference_winner"] = andrei_keely
-    # if Ryan was first preference
-    elif (ryan_hays.first_preference > andrei_keely.first_preference and ryan_hays.first_preference >
-          indi_franklin.first_preference and ryan_hays.first_preference > esther_barracks.first_preference):
-        globals()["first_preference_winner"] = ryan_hays
-    # if Esther Barracks was first preference
-    elif (esther_barracks.first_preference > indi_franklin.first_preference and esther_barracks.first_preference >
-          ryan_hays.first_preference and esther_barracks.first_preference > andrei_keely.first_preference):
-        globals()["first_preference_winner"] = esther_barracks
-
-    # if there is a tie between two or more results go to second preference
-    elif (esther_barracks.first_preference == indi_franklin.first_preference or esther_barracks.first_preference ==
-          ryan_hays.first_preference or esther_barracks.first_preference == andrei_keely.first_preference or
-          indi_franklin.first_preference == ryan_hays.first_preference or ryan_hays.first_preference ==
-          andrei_keely.first_preference or andrei_keely.first_preference == indi_franklin.first_preference):
-        # If Indi Franklin was second preference
-        if (indi_franklin.second_preference > andrei_keely.second_preference and indi_franklin.second_preference >
-                esther_barracks.second_preference and indi_franklin.second_preference > ryan_hays.second_preference):
-            globals()["second_preference_winner"] = indi_franklin
-        # If Andrei was second preference
-        elif (andrei_keely.second_preference > indi_franklin.second_preference and andrei_keely.second_preference >
-              esther_barracks.second_preference and andrei_keely.second_preference > ryan_hays.second_preference):
-            globals()["second_preference_winner"] = andrei_keely
-        # if Ryan was second preference
-        elif (ryan_hays.second_preference > andrei_keely.second_preference and ryan_hays.second_preference >
-              indi_franklin.second_preference and ryan_hays.second_preference > esther_barracks.second_preference):
-            globals()["second_preference_winner"] = ryan_hays
-        # if Esther Barracks was second preference
-        elif (esther_barracks.second_preference > indi_franklin.second_preference and esther_barracks.second_preference >
-                ryan_hays.second_preference and esther_barracks.second_preference > andrei_keely.second_preference):
-            globals()["second_preference_winner"] = esther_barracks
-
-        # if there is a tie between two or more results go to third preference
-        elif (esther_barracks.first_preference == indi_franklin.first_preference or esther_barracks.first_preference ==
-              ryan_hays.first_preference or esther_barracks.first_preference == andrei_keely.first_preference or
-              indi_franklin.first_preference == ryan_hays.first_preference or ryan_hays.first_preference ==
-              andrei_keely.first_preference or andrei_keely.first_preference == indi_franklin.first_preference):
-            # If Indi Franklin was third preference
-            if (indi_franklin.third_preference > andrei_keely.third_preference and indi_franklin.third_preference >
-                    esther_barracks.third_preference and indi_franklin.third_preference > ryan_hays.third_preference):
-                globals()["third_preference_winner"] = indi_franklin
-            # If Andrei was third preference
-            elif (andrei_keely.third_preference > indi_franklin.third_preference and andrei_keely.third_preference >
-                  esther_barracks.third_preference and andrei_keely.third_preference > ryan_hays.third_preference):
-                globals()["third_preference_winner"] = andrei_keely
-            # if Ryan was third preference
-            elif (ryan_hays.third_preference > andrei_keely.third_preference and ryan_hays.third_preference >
-                  indi_franklin.third_preference and ryan_hays.third_preference > esther_barracks.third_preference):
-                globals()["third_preference_winner"] = ryan_hays
-            # if Esther Barracks was third preference
-            elif (esther_barracks.third_preference > indi_franklin.third_preference and esther_barracks.third_preference >
-                    ryan_hays.second_preference and esther_barracks.third_preference > andrei_keely.third_preference):
-                globals()["second_preference_winner"] = esther_barracks
-
-
-
-# todo think of another way to work out the above. It does not work because when it finds a correct statement it will
-#  not complete any other elif statements though I need it to.
-
-# todo I will also need to delete VotingDatabase at some point as the results table has been changed along with class
-
-find_president_winner()
-
-global first_preference_winner
-global second_preference_winner
-global third_preference_winner
-global fourth_preference_winner
-
-# find_president_winner()
-# print(pres_first_preference)
-# print(pres_second_preference)
-# print(pres_third_preference)
-# print(pres_fourth_preference)
+for x in president_results:
+    print(x.full_name+" "+str(x.first)+" "+str(x.second)+" "+str(x.third)+" "+str(x.fourth))
