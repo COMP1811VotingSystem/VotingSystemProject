@@ -39,64 +39,246 @@ class FacultyResults(CandidateResults):
 
 c.execute("SELECT Forename, Surname, Faculty FROM Candidate WHERE Position = 'President'")
 for x in c:
-    president_results.append(PresidentResults(full_name=x[0]+" "+x[1], faculty=x[2]))
+    president_results.append(PresidentResults(full_name=x[0] + " " + x[1], faculty=x[2]))
 
 c.execute("SELECT Forename, Surname, Faculty FROM Candidate WHERE Position = 'GSU Officer'")
 for x in c:
-    officer_results.append(OfficerResults(full_name=x[0]+" "+x[1], faculty=x[2]))
+    officer_results.append(OfficerResults(full_name=x[0] + " " + x[1], faculty=x[2]))
 
 c.execute("SELECT Forename, Surname, Faculty FROM Candidate WHERE Position = 'Faculty Officer'")
 for x in c:
-    faculty_results.append(FacultyResults(full_name=x[0]+" "+x[1], faculty=x[2]))
+    faculty_results.append(FacultyResults(full_name=x[0] + " " + x[1], faculty=x[2]))
 
 
-def president_winner(candidate_list, sql_one, sql_two, voting_list, attr):
+def count_president(sql_one, sql_two, voting_list, attr, president_list):
+    counter_dict = {"counter1": 0, "counter2": 0, "counter3": 0, "counter4": 0}
 
+    if sql_two == "PresidentVotes":
+        c.execute(f"SELECT {sql_one} FROM {sql_two}")
+        for names in c:
+            if president_list[0] in names:
+                for x in voting_list:
+                    if x.full_name == president_list[0]:
+                        counter_dict["counter1"] += 1
+                        setattr(x, attr, counter_dict["counter1"])
+            elif president_list[1] in names:
+                for x in voting_list:
+                    if x.full_name == president_list[1]:
+                        counter_dict["counter2"] += 1
+                        setattr(x, attr, counter_dict["counter2"])
+            elif president_list[2] in names:
+                for x in voting_list:
+                    if x.full_name == president_list[2]:
+                        counter_dict["counter3"] += 1
+                        setattr(x, attr, counter_dict["counter3"])
+            elif president_list[3] in names:
+                for x in voting_list:
+                    if x.full_name == president_list[3]:
+                        counter_dict["counter4"] += 1
+                        setattr(x, attr, counter_dict["counter4"])
+
+
+def count_officer(sql_one, sql_two, voting_list, attr, officer_list):
+    counter_dict = {"counter1": 0, "counter2": 0, "counter3": 0, "counter4": 0,
+                    "counter5": 0, "counter6": 0, "counter7": 0, "counter8": 0,
+                    "counter9": 0, "counter10": 0, "counter11": 0, "counter12": 0}
+
+    c.execute(f"SELECT {sql_one} FROM {sql_two}")
+    for names in c:
+        if officer_list[0] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[0]:
+                    counter_dict["counter1"] += 1
+                    setattr(x, attr, counter_dict["counter1"])
+        elif officer_list[1] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[1]:
+                    counter_dict["counter2"] += 1
+                    setattr(x, attr, counter_dict["counter2"])
+        elif officer_list[2] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[2]:
+                    counter_dict["counter3"] += 1
+                    setattr(x, attr, counter_dict["counter3"])
+        elif officer_list[3] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[3]:
+                    counter_dict["counter4"] += 1
+                    setattr(x, attr, counter_dict["counter4"])
+        elif officer_list[4] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[4]:
+                    counter_dict["counter5"] += 1
+                    setattr(x, attr, counter_dict["counter5"])
+        elif officer_list[5] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[5]:
+                    counter_dict["counter6"] += 1
+                    setattr(x, attr, counter_dict["counter6"])
+        elif officer_list[6] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[6]:
+                    counter_dict["counter7"] += 1
+                    setattr(x, attr, counter_dict["counter7"])
+        elif officer_list[7] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[7]:
+                    counter_dict["counter8"] += 1
+                    setattr(x, attr, counter_dict["counter8"])
+        elif officer_list[8] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[8]:
+                    counter_dict["counter9"] += 1
+                    setattr(x, attr, counter_dict["counter9"])
+        elif officer_list[9] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[9]:
+                    counter_dict["counter10"] += 1
+                    setattr(x, attr, counter_dict["counter10"])
+        elif officer_list[10] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[10]:
+                    counter_dict["counter11"] += 1
+                    setattr(x, attr, counter_dict["counter11"])
+        elif officer_list[11] in names:
+            for x in voting_list:
+                if x.full_name == officer_list[11]:
+                    counter_dict["counter12"] += 1
+                    setattr(x, attr, counter_dict["counter12"])
+
+
+def count_faculty(sql_one, voting_list, attr, faculty_names):
     counter_dict = {"counter1": 0, "counter2": 0, "counter3": 0, "counter4": 0,
                     "counter5": 0, "counter6": 0, "counter7": 0, "counter8": 0,
                     "counter9": 0, "counter10": 0, "counter11": 0, "counter12": 0,
                     "counter13": 0, "counter14": 0, "counter15": 0, "counter16": 0}
 
-    if sql_two == "PresidentVotes":
-        c.execute(f"SELECT {sql_one} FROM {sql_two}")
-        for names in c:
-            if candidate_list[0] in names:
-                for x in voting_list:
-                    if x.full_name == candidate_list[0]:
-                        counter_dict["counter1"] += 1
-                        setattr(x, attr, counter_dict["counter1"])
-            elif candidate_list[1] in names:
-                for x in voting_list:
-                    if x.full_name == candidate_list[1]:
-                        counter_dict["counter2"] += 1
-                        setattr(x, attr, counter_dict["counter2"])
-            elif candidate_list[2] in names:
-                for x in voting_list:
-                    if x.full_name == candidate_list[2]:
-                        counter_dict["counter3"] += 1
-                        setattr(x, attr, counter_dict["counter3"])
-            elif candidate_list[3] in names:
-                for x in voting_list:
-                    if x.full_name == candidate_list[3]:
-                        counter_dict["counter4"] += 1
-                        setattr(x, attr, counter_dict["counter4"])
-    elif sql_two == "FacultyOfficerVotes":
-        pass
+    c.execute(f"SELECT {sql_one} FROM FacultyOfficerVotes")
+    for names in c:
+        if faculty_names[0] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[0]:
+                    counter_dict["counter1"] += 1
+                    setattr(x, attr, counter_dict["counter1"])
+        elif faculty_names[1] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[1]:
+                    counter_dict["counter2"] += 1
+                    setattr(x, attr, counter_dict["counter2"])
+        elif faculty_names[2] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[2]:
+                    counter_dict["counter3"] += 1
+                    setattr(x, attr, counter_dict["counter3"])
+        elif faculty_names[3] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[3]:
+                    counter_dict["counter4"] += 1
+                    setattr(x, attr, counter_dict["counter4"])
+        elif faculty_names[4] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[4]:
+                    counter_dict["counter5"] += 1
+                    setattr(x, attr, counter_dict["counter5"])
+        elif faculty_names[5] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[5]:
+                    counter_dict["counter6"] += 1
+                    setattr(x, attr, counter_dict["counter6"])
+        elif faculty_names[6] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[6]:
+                    counter_dict["counter7"] += 1
+                    setattr(x, attr, counter_dict["counter7"])
+        elif faculty_names[7] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[7]:
+                    counter_dict["counter8"] += 1
+                    setattr(x, attr, counter_dict["counter8"])
+        elif faculty_names[8] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[8]:
+                    counter_dict["counter9"] += 1
+                    setattr(x, attr, counter_dict["counter9"])
+        elif faculty_names[9] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[9]:
+                    counter_dict["counter10"] += 1
+                    setattr(x, attr, counter_dict["counter10"])
+        elif faculty_names[10] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[10]:
+                    counter_dict["counter11"] += 1
+                    setattr(x, attr, counter_dict["counter11"])
+        elif faculty_names[11] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[11]:
+                    counter_dict["counter12"] += 1
+                    setattr(x, attr, counter_dict["counter12"])
+        elif faculty_names[12] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[12]:
+                    counter_dict["counter13"] += 1
+                    setattr(x, attr, counter_dict["counter13"])
+        elif faculty_names[13] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[13]:
+                    counter_dict["counter14"] += 1
+                    setattr(x, attr, counter_dict["counter14"])
+        elif faculty_names[14] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[14]:
+                    counter_dict["counter15"] += 1
+                    setattr(x, attr, counter_dict["counter15"])
+        elif faculty_names[15] in names:
+            for x in voting_list:
+                if x.full_name == faculty_names[15]:
+                    counter_dict["counter16"] += 1
+                    setattr(x, attr, counter_dict["counter16"])
 
-    elif sql_two == "GSUOfficerVotes":
-        pass
 
+count_president("FirstPreference", "PresidentVotes", president_results,
+                "first", president_names)
+count_president("SecondPreference", "PresidentVotes", president_results,
+                "second", president_names)
+count_president("ThirdPreference", "PresidentVotes", president_results,
+                "third", president_names)
+count_president("FourthPreference", "PresidentVotes", president_results,
+                "fourth", president_names)
 
-president_winner(president_names, "FirstPreference", "PresidentVotes",
-                 president_results, "first")
-president_winner(president_names, "SecondPreference", "PresidentVotes",
-                 president_results, "second")
-president_winner(president_names, "ThirdPreference", "PresidentVotes",
-                 president_results, "third")
-president_winner(president_names, "FourthPreference", "PresidentVotes",
-                 president_results, "fourth")
+count_officer("FirstPreference", "GSUOfficerVotes", officer_results,
+              "first", officer_names)
+count_officer("SecondPreference", "GSUOfficerVotes", officer_results,
+              "second", officer_names)
+count_officer("ThirdPreference", "GSUOfficerVotes", officer_results,
+              "third", officer_names)
+count_officer("FourthPreference", "GSUOfficerVotes", officer_results,
+              "fourth", officer_names)
 
+count_faculty("FirstPreference", faculty_results,
+              "first", sb_faculty_names)
+count_faculty("SecondPreference", faculty_results,
+              "second", sb_faculty_names)
+count_faculty("ThirdPreference", faculty_results,
+              "third", sb_faculty_names)
+count_faculty("FourthPreference", faculty_results,
+              "fourth", sb_faculty_names)
 
+count_faculty("FirstPreference", faculty_results,
+              "first", as_faculty_names)
+count_faculty("SecondPreference", faculty_results,
+              "second", as_faculty_names)
+count_faculty("ThirdPreference", faculty_results,
+              "third", as_faculty_names)
+count_faculty("FourthPreference", faculty_results,
+              "fourth", as_faculty_names)
 
-#for x in president_results:
-#    print(x.full_name+" "+str(x.first)+" "+str(x.second)+" "+str(x.third)+" "+str(x.fourth))
+# The below for loops print out the results from the voting. Change where necessary 
+
+"""for x in officer_results:
+    print(x.full_name + " " + str(x.first) + " " + str(x.second) + " " + str(x.third) + " " + str(x.fourth))
+
+for x in faculty_results:
+    if x.faculty == "SB":
+        print(x.full_name + " " + str(x.first) + " " + str(x.second) + " " + str(x.third) + " " + str(x.fourth))"""
+
