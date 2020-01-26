@@ -1,89 +1,1479 @@
+import tkinter as tk
 import sqlite3
-from Classes import FacultyOfficerVotes, PresidentVotes, GSUOfficerVotes, Results
-import pandas as pd
+from tkinter import ttk
+from tkinter.messagebox import showinfo
+import datetime
+from SQLite import students
+from NamesLists import president_names, officer_names, es_faculty_names, sb_faculty_names, as_faculty_names
+from NamesLists import eh_faculty_names
+from SQLiteQueries import president_main, faculty_main, officer_main
+from PIL import Image, ImageTk
+from SQLite import president_votes, faculty_votes, officer_votes
 
+# Connecting to voting database
 conn = sqlite3.connect("VotingDatabase.db")
 c = conn.cursor()
 
-president_results = []
+# Creating global variables initially to check later that the user has not voted for a position twice
+globals()["presidential_votes"] = 0
+globals()["faculty_votes"] = 0
+globals()["officer_votes"] = 0
+
+# Creating List of student usernames
+student_usernames = []
 
 
-class PresidentResults:
+class MainWindow:
 
-    def __init__(self, full_name, first=0, second=0, third=0, fourth=0):
-        self.full_name = full_name
-        self.first = first
-        self.second = second
-        self.third = third
-        self.fourth = fourth
+    def __init__(self, master):
+        self.master = master
 
+        # Setting the window up
+        self.master.geometry("850x750")
+        self.master.configure(background="RoyalBlue4")
+        self.master.title("GSU ELECTIONS 2020")
+        self.master.resizable(width=False, height=False)
 
-c.execute("SELECT Forename, Surname  FROM Candidate WHERE Position = 'President'")
-for x in c:
-    president_results.append(PresidentResults(full_name=x[0]+" "+x[1]))
+        self.main_label = tk.Label(text="GSU Elections 2020", bg="RoyalBlue4", width="150", height="4", fg="white",
+                                   font=("Arial", "55", "bold", "italic"))
+        self.main_label.place(relx=0.5, rely=0.40, anchor="center")
 
-# todo I have made progress and just need to find a way to make the code below reusable so that I just change it
-#  for each preference and append it to a list correctly. Will need to call additional arguments
+        self.vote_button = tk.Button(text="Vote", height="3", width=30, command=self.vote)
+        self.vote_button.place(relx=0.10, rely=0.75, anchor="sw")
 
+        self.quit_button = tk.Button(text="Quit", height="3", width=30, command=self.close_window)
+        self.quit_button.place(relx=0.65, rely=0.75, anchor="sw")
 
-def president_winner(cand_one, cand_two, cand_three, cand_four):
-    c.execute("SELECT FirstPreference FROM PresidentVotes")
-    for names in c:
-        if cand_one in names:
-            for x in president_results:
-                if x.full_name == cand_one:
-                    x.first += 1
+    def vote(self):
+        """
+        Functionality for user when they press vote on main page
+        """
+        # Code below checks that voting is open
+        open_date = datetime.date.today()
+        start_date = datetime.date(2019, 12, 7)
+        end_date = datetime.date(2020, 1, 30)
 
-        elif cand_two in names:
-            for x in president_results:
-                if x.full_name == cand_two:
-                    x.first += 1
+        if start_date <= open_date <= end_date:
+            self.new_window()
+        else:
+            showinfo("Alert Message", "Voting is now closed")
 
-        elif cand_three in names:
-            for x in president_results:
-                if x.full_name == cand_three:
-                    x.first += 1
+    def close_window(self):
+        self.master.destroy()
 
-        elif cand_four in names:
-            for x in president_results:
-                if x.full_name == cand_four:
-                    x.first += 1
+    def new_window(self):
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
 
-
-president_winner("Indi Franklin", "Andrei Keely", "Esther Barracks", "Ryan Hays")
-
-for x in president_results:
-    print(x.first)
-
+        # next window
+        self.second_window = SecondWindow(self.master)
 
 
+class SecondWindow:
+
+    def __init__(self, master):
+        self.master = master
+
+        self.logo = Image.open("uni_logo.jpg")
+        self.logo_render = ImageTk.PhotoImage(self.logo)
+        self.main_label2 = tk.Label(image=self.logo_render, relief="sunken")
+        self.main_label2.place(relx=0.5, rely=0.3, anchor="center")
+
+        # login text
+        self.login_label = tk.Label(text="Log in with your University Username and Password", bg="RoyalBlue4",
+                                    fg="white", width="48", height="2", font=("Arial", "20", "bold", "italic"))
+        self.login_label.place(relx=0.5, rely=0.5, anchor="center")
+
+        # Login buttons and Labels
+        self.user_label = tk.Label(text="Username", width="15", height="1", bg="RoyalBlue4",
+                                   fg="white", font=("Arial", "12", "bold"))
+        self.user_label.place(relx=0.37, rely=0.65, anchor="center")
+        self.user_entry = tk.Entry(width="25", borderwidth="3", relief="sunken")
+        self.user_entry.place(relx=0.57, rely=0.65, anchor="center")
+        self.password_label = tk.Label(text="Password", width="15", height="1", bg="RoyalBlue4",
+                                       fg="white", font=("Arial", "12", "bold"))
+        self.password_label.place(relx=0.37, rely=0.7, anchor="center")
+        self.password_entry = tk.Entry(width="25", borderwidth="3", relief="sunken", show="*")
+        self.password_entry.place(relx=0.57, rely=0.7, anchor="center")
+
+        # login button
+        self.login_entry = tk.Button(text="Log In", height="2", width=5, command=self.check_user)
+        self.login_entry.place(relx=0.72, rely=0.675, anchor="center")
+
+        # example students
+        self.student_one = tk.Label(text="Student who can login: Username = mb3520e     "
+                                         "Password = PasswordBarnett",
+                                    bg="RoyalBlue4", fg="white", width="65",
+                                    font=("Arial", "12", "italic"))
+        self.student_one.place(relx=0.5, rely=0.05, anchor="center")
+        self.student_two = tk.Label(text="Student without voting rights: Username = dc3045g     "
+                                         "Password = ChristDante",
+                                    bg="RoyalBlue4", fg="white", width="65",
+                                    font=("Arial", "12", "italic"))
+        self.student_two.place(relx=0.5, rely=0.10, anchor="center")
+
+    def check_user(self):
+        self.valid_user = False
+        self.has_voted = False
+        self.password_attempt = self.password_entry.get()
+        self.username_attempt = self.user_entry.get()
+
+        # todo best bet is to create a method that is called once the user passes the below
+        #   then checks if they have voted or not already before entering the GUI
+
+        for student in students:
+            if student.username == self.username_attempt and student.password == self.password_attempt:
+                # check that student is registered to vote or note
+                if student.has_registered:
+                    student_usernames.append(self.username_attempt)
+                    self.valid_user = True
+                    self.new_window()
+                    globals()["student_faculty"] = student.faculty
+                    globals()["student_username"] = student.username
+                else:
+                    self.valid_user = True
+                    showinfo("Window", "Sorry {}, you are not registered to vote. "
+                                       "Please contact the GSU to request permission to vote".format(student.forename))
+        if not self.valid_user:
+            self.password_entry.delete(0, "end")
+            self.user_entry.delete(0, "end")
+            showinfo("Incorrect Details", "Incorrect password or username. Please try again")
+
+    def new_window(self):
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+        # next window
+        self.third_window = ThirdWindow(self.master)
 
 
+class ThirdWindow:
+    def __init__(self, master):
+        self.master = master
+
+        self.choose_label = tk.Label(text="Choose your GSU Officers!", bg="RoyalBlue4", width="100",
+                                     height="4", fg="white", font=("Arial", "40", "bold", "italic"))
+        self.choose_label.place(relx=0.5, rely=0.50, anchor="center")
+
+        self.president_button = tk.Button(text="GSU President", height="3", width=20, command=self.vote_president)
+        self.president_button.place(relx=0.5, rely=0.70, anchor="center")
+
+        self.officer_button = tk.Button(text="GSU Officers", height="3", width=20, command=self.vote_officer)
+        self.officer_button.place(relx=0.20, rely=0.70, anchor="center")
+
+        self.faculty_button = tk.Button(text="GSU Faculty Officers", height="3", width=20, command=self.vote_faculty)
+        self.faculty_button.place(relx=0.80, rely=0.70, anchor="center")
+
+        self.back_button = tk.Button(text="Sign Out", height="1", width=10, command=self.go_back)
+        self.back_button.place(relx=0.06, rely=0.03, anchor="center")
+
+        self.logo = Image.open("uni_logo.jpg")
+        self.logo_render = ImageTk.PhotoImage(self.logo)
+        self.main_label2 = tk.Label(image=self.logo_render, relief="sunken")
+        self.main_label2.place(relx=0.5, rely=0.25, anchor="center")
+
+    def go_back(self):
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
+        self.signout_window = SignOutWindow(self.master)
+
+    def vote_president(self):
+        global presidential_votes
+
+        if not presidential_votes:
+            self.list = root.place_slaves()
+            for i in self.list:
+                i.destroy()
+            # Next window class
+            self.president_window = PresidentWindow(self.master)
+        else:
+            showinfo("window", "You cannot vote for this position again. Please try another position")
+
+    def vote_officer(self):
+        global officer_votes
+
+        if not officer_votes:
+            self.list = root.place_slaves()
+            for i in self.list:
+                i.destroy()
+
+            self.officer_window = OfficerWindow(self.master)
+        else:
+            showinfo("window", "You cannot vote for this position again. Please try another position")
+
+    def vote_faculty(self):
+        global faculty_votes
+
+        if not faculty_votes:
+            self.list = root.place_slaves()
+            for i in self.list:
+                i.destroy()
+
+            # Code checks what faculty the user is in and then takes them to the correct page
+            global student_faculty
+            if student_faculty == "EH":
+                self.eh_faculty__window = FacultyWindowEH(self.master)
+            elif student_faculty == "ES":
+                self.es_faculty_window = FacultyWindowES(self.master)
+            elif student_faculty == "AS":
+                self.as_faculty_window = FacultyWindowAS(self.master)
+            elif student_faculty == "SB":
+                self.sb_faculty_window = FacultyWindowSB(self.master)
+        else:
+            showinfo("window", "You cannot vote for this position again. Please try another position")
 
 
+class SignOutWindow:
 
-def create_obj(name, position, faculty, voting_list):
-    """
-    :param name: Name of the candidate as a string
-    :param position: Position of the candidate as a string
-    :param faculty: Faculty of the candidate as a string
-    :param voting_list: Voting objects saved as a list
-    :return: Iterates through the voting list and creates an instance of the Results class
-    """
-    first = 0
-    second = 0
-    third = 0
-    fourth = 0
+    def __init__(self, master):
+        self.master = master
 
-    for column in voting_list:
-        if column.first_preference == name:
-            first += 1
-        elif column.second_preference == name:
-            second += 1
-        elif column.third_preference == name:
-            third += 1
-        elif column.fourth_preference == name:
-            fourth += 1
+        self.thank_you = tk.Label(text="Thank you!", bg="RoyalBlue4", width="50", height="3",
+                                  fg="white", font=("Arial", "50", "bold", "italic"))
+        self.thank_you.place(relx=0.5, rely=0.2, anchor="center")
+        self.label = tk.Label(text="For entering the GSU Voting System",
+                              bg="RoyalBlue4", width="40", height="3", fg="white",
+                              font=("Arial", "35", "bold", "italic"))
+        self.label.place(relx=0.5, rely=0.4, anchor="center")
+        self.info_label = tk.Label(text="If you are another student who would like to vote,",
+                                   bg="RoyalBlue4", width="40", height="2", fg="white",
+                                   font=("Arial", "20", "bold", "italic"))
+        self.info_label.place(relx=0.5, rely=0.6, anchor="center")
+        self.info_label_two = tk.Label(text="please close this program and login again to vote correctly",
+                                       bg="RoyalBlue4", width="45", height="2", fg="white",
+                                       font=("Arial", "20", "bold", "italic"))
+        self.info_label_two.place(relx=0.5, rely=0.67, anchor="center")
+        self.quit_button = tk.Button(text="Quit", height="3", width=30, command=self.close_window)
+        self.quit_button.place(relx=0.5, rely=0.85, anchor="center")
 
-    return Results(name, position, faculty, first, second, third, fourth)
-    #return list([name, position, faculty, first, second, third, fourth])
+    def close_window(self):
+        self.master.destroy()
+
+
+class PresidentWindow:
+
+    def __init__(self, master):
+        self.master = master
+
+        # Main Headers
+        self.president_label = tk.Label(text="GSU President!", bg="RoyalBlue4", width="100",
+                                        height="4", fg="white", font=("Arial", "40", "bold", "italic"))
+        self.president_label.place(relx=0.5, rely=0.10, anchor="center")
+        self.president_two_label = tk.Label(text="Please rank each candidate in order of preference",
+                                            bg="RoyalBlue4", width="55", height="4", fg="white",
+                                            font=("Arial", "15", "bold", "italic"))
+        self.president_two_label.place(relx=0.5, rely=0.2, anchor="center")
+
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
+
+        # All combo boxes
+        self.first_box = ttk.Combobox(values=president_names)
+        self.first_box.place(relx=0.15, rely=0.75, anchor="center")
+        self.second_box = ttk.Combobox(values=president_names)
+        self.second_box.place(relx=0.375, rely=0.75, anchor="center")
+        self.third_box = ttk.Combobox(values=president_names)
+        self.third_box.place(relx=0.625, rely=0.75, anchor="center")
+        self.fourth_box = ttk.Combobox(values=president_names)
+        self.fourth_box.place(relx=0.85, rely=0.75, anchor="center")
+
+        # Preference labels
+        self.first_label = tk.Label(text="1st Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.first_label.place(relx=0.15, rely=0.80, anchor="center")
+        self.second_label = tk.Label(text="2nd Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.second_label.place(relx=0.375, rely=0.8, anchor="center")
+        self.third_label = tk.Label(text="3rd Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", 11, "bold", "italic"))
+        self.third_label.place(relx=0.625, rely=0.8, anchor="center")
+        self.fourth_label = tk.Label(text="4th Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.fourth_label.place(relx=0.85, rely=0.80, anchor="center")
+
+        # Buttons
+        self.back_button = tk.Button(text="Back", height="1", width=10, command=self.go_back)
+        self.back_button.place(relx=0.06, rely=0.03, anchor="center")
+        self.save_choice = tk.Button(text="Save Choice", height="2", width=15, command=self.save_choice)
+        self.save_choice.place(relx=0.5, rely=0.9, anchor="center")
+
+    def save_choice(self):
+        global student_username
+        self.first_choice = self.first_box.get()
+        self.second_choice = self.second_box.get()
+        self.third_choice = self.third_box.get()
+        self.fourth_choice = self.fourth_box.get()
+        globals()["presidential_votes"] = 0
+
+        # if user has voted for all four preferences correctly without errors then save entry and continue
+        if (self.first_box.get() in president_names and self.second_box.get() in president_names and
+                self.third_box.get() in president_names and self.fourth_box.get() in president_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.first_box.get() != self.fourth_box.get() and self.second_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["presidential_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    president_main(username=student_username, first_pref=self.first_choice,
+                                   second_pref=self.second_choice, third_pref=self.third_choice,
+                                   fourth_pref=self.fourth_choice)
+                    self.go_back()
+
+            # If user selects the same candidate twice
+            elif (self.first_box.get() == self.second_box.get() or self.first_box.get() == self.third_box.get() or
+                  self.first_box.get() == self.fourth_box.get() or self.second_box.get() == self.third_box.get() or
+                  self.second_box.get() == self.fourth_box.get() or self.third_box.get() == self.fourth_box.get()):
+                showinfo("window", "You cannot select the same candidate twice. Please try again")
+
+        # if user only votes for first preference
+        elif (self.first_box.get() in president_names and self.second_box.get() == "" and self.third_box.get() == ""
+              and self.fourth_box.get() == ""):
+            self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choice")
+            if self.msgbox == "yes":
+                globals()["presidential_votes"] = 1
+                president_main(username=student_username, first_pref=self.first_choice)
+                self.go_back()
+
+        # if user votes for 1st and 2nd preference but not 3rd or 4th
+        elif (self.first_box.get() in president_names and self.second_box.get() in president_names and
+              self.third_box.get() == "" and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.second_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["presidential_votes"] = 1
+                    president_main(username=student_username, first_pref=self.first_choice,
+                                   second_pref=self.second_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 3rd but not 2nd or 4th
+        elif (self.first_box.get() in president_names and self.second_box.get() == "" and
+              self.third_box.get() in president_names and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.third_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["presidential_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    president_main(username=student_username, first_pref=self.first_choice,
+                                   third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 4th but not 2nd or 3rd
+        elif (self.first_box.get() in president_names and self.second_box.get() == "" and
+              self.third_box.get() == "" and self.fourth_box.get() in president_names):
+            if self.first_box.get() != self.fourth_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["presidential_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    president_main(username=student_username, first_pref=self.first_choice,
+                                   fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 3rd and 4th but not 2nd
+        elif (self.first_box.get() in president_names and self.second_box.get() == "" and
+              self.third_box.get() in president_names and self.fourth_box.get() in president_names):
+            if (self.first_box.get() != self.fourth_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["presidential_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    president_main(username=student_username, first_pref=self.first_choice,
+                                   third_pref=self.third_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 4th but not 3rd
+        elif (self.first_box.get() in president_names and self.second_box.get() in president_names and
+              self.third_box.get() == "" and self.fourth_box.get() in president_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.fourth_box.get() and
+                    self.second_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["presidential_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    president_main(username=student_username, first_pref=self.first_choice,
+                                   second_pref=self.second_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 3rd but not 4th
+        elif (self.first_box.get() in president_names and self.second_box.get() in president_names and
+              self.third_box.get() in president_names and self.fourth_box.get() == ""):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.third_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["presidential_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    president_main(username=student_username, first_pref=self.first_choice,
+                                   second_pref=self.second_choice, third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # Incorrect voting
+        else:
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
+
+    def go_back(self):
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
+        self.third_window = ThirdWindow(self.master)
+
+
+class FacultyWindowEH:
+
+    def __init__(self, master):
+        self.master = master
+
+        # Main Headers
+        self.faculty_label = tk.Label(text="GSU Faculty Officers!", bg="RoyalBlue4", width="100",
+                                      height="6", fg="white", font=("Arial", "40", "bold", "italic"))
+        self.faculty_label.place(relx=0.5, rely=0.10, anchor="center")
+
+        self.faculty_two_label = tk.Label(text="Please rank each candidate in order of preference",
+                                          bg="RoyalBlue4", width="55", height="3", fg="white",
+                                          font=("Arial", "15", "bold", "italic"))
+        self.faculty_two_label.place(relx=0.5, rely=0.2, anchor="center")
+
+        self.unique_label = tk.Label(text="Faculty of Education, Health and Human Sciences", bg="RoyalBlue4",
+                                     width="75", height="4", fg="white", font=("Arial", "25", "bold", "italic"))
+        self.unique_label.place(relx=0.5, rely=0.68, anchor="center")
+
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
+
+        # All combo boxes
+        self.first_box = ttk.Combobox(values=eh_faculty_names)
+        self.first_box.place(relx=0.15, rely=0.75, anchor="center")
+        self.second_box = ttk.Combobox(values=eh_faculty_names)
+        self.second_box.place(relx=0.375, rely=0.75, anchor="center")
+        self.third_box = ttk.Combobox(values=eh_faculty_names)
+        self.third_box.place(relx=0.625, rely=0.75, anchor="center")
+        self.fourth_box = ttk.Combobox(values=eh_faculty_names)
+        self.fourth_box.place(relx=0.85, rely=0.75, anchor="center")
+
+        # Preference labels
+        self.first_label = tk.Label(text="1st Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.first_label.place(relx=0.15, rely=0.80, anchor="center")
+        self.second_label = tk.Label(text="2nd Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.second_label.place(relx=0.375, rely=0.8, anchor="center")
+        self.third_label = tk.Label(text="3rd Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", 11, "bold", "italic"))
+        self.third_label.place(relx=0.625, rely=0.8, anchor="center")
+        self.fourth_label = tk.Label(text="4th Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.fourth_label.place(relx=0.85, rely=0.80, anchor="center")
+
+        # Buttons
+        self.back_button = tk.Button(text="Back", height="1", width=10, command=self.go_back)
+        self.back_button.place(relx=0.06, rely=0.03, anchor="center")
+        self.save_choice = tk.Button(text="Save Choice", height="2", width=15, command=self.save_choice)
+        self.save_choice.place(relx=0.5, rely=0.9, anchor="center")
+
+    def save_choice(self):
+        global student_username
+        self.first_choice = self.first_box.get()
+        self.second_choice = self.second_box.get()
+        self.third_choice = self.third_box.get()
+        self.fourth_choice = self.fourth_box.get()
+        globals()["faculty_votes"] = 0
+
+        # if user has voted for all four preferences correctly without errors then save entry and continue
+        if (self.first_box.get() in eh_faculty_names and self.second_box.get() in eh_faculty_names and
+                self.third_box.get() in eh_faculty_names and self.fourth_box.get() in eh_faculty_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.first_box.get() != self.fourth_box.get() and self.second_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="EH", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, third_pref=self.third_choice,
+                                 fourth_pref=self.fourth_choice)
+                    self.go_back()
+
+            # If user selects the same candidate twice
+            elif (self.first_box.get() == self.second_box.get() or self.first_box.get() == self.third_box.get() or
+                  self.first_box.get() == self.fourth_box.get() or self.second_box.get() == self.third_box.get() or
+                  self.second_box.get() == self.fourth_box.get() or self.third_box.get() == self.fourth_box.get()):
+                showinfo("window", "You cannot select the same candidate twice. Please try again")
+
+        # if user only votes for first preference
+        elif (self.first_box.get() in eh_faculty_names and self.second_box.get() == "" and self.third_box.get() == ""
+              and self.fourth_box.get() == ""):
+            self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choice")
+            if self.msgbox == "yes":
+                globals()["faculty_votes"] = 1
+                faculty_main(faculty="EH", username=student_username, first_pref=self.first_choice)
+                self.go_back()
+
+        # if user votes for 1st and 2nd preference but not 3rd or 4th
+        elif (self.first_box.get() in eh_faculty_names and self.second_box.get() in eh_faculty_names and
+              self.third_box.get() == "" and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.second_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    self.go_back()
+                    faculty_main(faculty="EH", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice)
+                    self.go_back()
+
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 3rd but not 2nd or 4th
+        elif (self.first_box.get() in eh_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() in eh_faculty_names and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.third_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="EH", username=student_username, first_pref=self.first_choice,
+                                 third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 4th but not 2nd or 3rd
+        elif (self.first_box.get() in eh_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() == "" and self.fourth_box.get() in eh_faculty_names):
+            if self.first_box.get() != self.fourth_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="EH", username=student_username, first_pref=self.first_choice,
+                                 fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 3rd and 4th but not 2nd
+        elif (self.first_box.get() in eh_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() in eh_faculty_names and self.fourth_box.get() in eh_faculty_names):
+            if (self.first_box.get() != self.fourth_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="EH", username=student_username, first_pref=self.first_choice,
+                                 third_pref=self.third_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 4th but not 3rd
+        elif (self.first_box.get() in eh_faculty_names and self.second_box.get() in eh_faculty_names and
+              self.third_box.get() == "" and self.fourth_box.get() in eh_faculty_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.fourth_box.get() and
+                    self.second_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="EH", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 3rd but not 4th
+        elif (self.first_box.get() in eh_faculty_names and self.second_box.get() in eh_faculty_names and
+              self.third_box.get() in eh_faculty_names and self.fourth_box.get() == ""):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.third_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="EH", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # Incorrect voting
+        else:
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
+
+    def go_back(self):
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
+        self.third_window = ThirdWindow(self.master)
+
+
+class FacultyWindowES:
+
+    def __init__(self, master):
+        self.master = master
+
+        # Main Headers
+        self.faculty_label = tk.Label(text="GSU Faculty Officers!", bg="RoyalBlue4", width="100",
+                                      height="6", fg="white", font=("Arial", "40", "bold", "italic"))
+        self.faculty_label.place(relx=0.5, rely=0.10, anchor="center")
+
+        self.faculty_two_label = tk.Label(text="Please rank each candidate in order of preference",
+                                          bg="RoyalBlue4", width="55", height="3", fg="white",
+                                          font=("Arial", "15", "bold", "italic"))
+        self.faculty_two_label.place(relx=0.5, rely=0.2, anchor="center")
+
+        self.unique_label = tk.Label(text="Faculty of Engineering and Science", bg="RoyalBlue4",
+                                     width="75", height="4", fg="white", font=("Arial", "25", "bold", "italic"))
+        self.unique_label.place(relx=0.5, rely=0.68, anchor="center")
+
+        # All combo boxes
+        self.first_box = ttk.Combobox(values=es_faculty_names)
+        self.first_box.place(relx=0.15, rely=0.75, anchor="center")
+        self.second_box = ttk.Combobox(values=es_faculty_names)
+        self.second_box.place(relx=0.375, rely=0.75, anchor="center")
+        self.third_box = ttk.Combobox(values=es_faculty_names)
+        self.third_box.place(relx=0.625, rely=0.75, anchor="center")
+        self.fourth_box = ttk.Combobox(values=es_faculty_names)
+        self.fourth_box.place(relx=0.85, rely=0.75, anchor="center")
+
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
+
+        # Preference labels
+        self.first_label = tk.Label(text="1st Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.first_label.place(relx=0.15, rely=0.80, anchor="center")
+        self.second_label = tk.Label(text="2nd Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.second_label.place(relx=0.375, rely=0.8, anchor="center")
+        self.third_label = tk.Label(text="3rd Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", 11, "bold", "italic"))
+        self.third_label.place(relx=0.625, rely=0.8, anchor="center")
+        self.fourth_label = tk.Label(text="4th Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.fourth_label.place(relx=0.85, rely=0.80, anchor="center")
+
+        # Buttons
+        self.back_button = tk.Button(text="Back", height="1", width=10, command=self.go_back)
+        self.back_button.place(relx=0.06, rely=0.03, anchor="center")
+        self.save_choice = tk.Button(text="Save Choice", height="2", width=15, command=self.save_choice)
+        self.save_choice.place(relx=0.5, rely=0.9, anchor="center")
+
+    def save_choice(self):
+        global student_username
+        self.first_choice = self.first_box.get()
+        self.second_choice = self.second_box.get()
+        self.third_choice = self.third_box.get()
+        self.fourth_choice = self.fourth_box.get()
+        globals()["faculty_votes"] = 0
+
+        # if user has voted for all four preferences correctly without errors then save entry and continue
+        if (self.first_box.get() in es_faculty_names and self.second_box.get() in es_faculty_names and
+                self.third_box.get() in es_faculty_names and self.fourth_box.get() in es_faculty_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.first_box.get() != self.fourth_box.get() and self.second_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="ES", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, third_pref=self.third_choice,
+                                 fourth_pref=self.fourth_choice)
+                    self.go_back()
+
+            # If user selects the same candidate twice
+            elif (self.first_box.get() == self.second_box.get() or self.first_box.get() == self.third_box.get() or
+                  self.first_box.get() == self.fourth_box.get() or self.second_box.get() == self.third_box.get() or
+                  self.second_box.get() == self.fourth_box.get() or self.third_box.get() == self.fourth_box.get()):
+                showinfo("window", "You cannot select the same candidate twice. Please try again")
+
+        # if user only votes for first preference
+        elif (self.first_box.get() in es_faculty_names and self.second_box.get() == "" and self.third_box.get() == ""
+              and self.fourth_box.get() == ""):
+            self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choice")
+            if self.msgbox == "yes":
+                globals()["faculty_votes"] = 1
+                faculty_main(faculty="ES", username=student_username, first_pref=self.first_choice)
+                self.go_back()
+
+        # if user votes for 1st and 2nd preference but not 3rd or 4th
+        elif (self.first_box.get() in es_faculty_names and self.second_box.get() in es_faculty_names and
+              self.third_box.get() == "" and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.second_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    self.go_back()
+                    faculty_main(faculty="ES", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice)
+                    self.go_back()
+
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 3rd but not 2nd or 4th
+        elif (self.first_box.get() in es_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() in es_faculty_names and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.third_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="ES", username=student_username, first_pref=self.first_choice,
+                                 third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 4th but not 2nd or 3rd
+        elif (self.first_box.get() in es_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() == "" and self.fourth_box.get() in es_faculty_names):
+            if self.first_box.get() != self.fourth_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="ES", username=student_username, first_pref=self.first_choice,
+                                 fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 3rd and 4th but not 2nd
+        elif (self.first_box.get() in es_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() in es_faculty_names and self.fourth_box.get() in es_faculty_names):
+            if (self.first_box.get() != self.fourth_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="ES", username=student_username, first_pref=self.first_choice,
+                                 third_pref=self.third_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 4th but not 3rd
+        elif (self.first_box.get() in es_faculty_names and self.second_box.get() in es_faculty_names and
+              self.third_box.get() == "" and self.fourth_box.get() in es_faculty_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.fourth_box.get() and
+                    self.second_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="ES", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 3rd but not 4th
+        elif (self.first_box.get() in es_faculty_names and self.second_box.get() in es_faculty_names and
+              self.third_box.get() in es_faculty_names and self.fourth_box.get() == ""):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.third_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="ES", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # Incorrect voting
+        else:
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
+
+    def go_back(self):
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
+        self.third_window = ThirdWindow(self.master)
+
+
+class FacultyWindowAS:
+
+    def __init__(self, master):
+        self.master = master
+
+        # Main Headers
+        self.faculty_label = tk.Label(text="GSU Faculty Officers!", bg="RoyalBlue4", width="100",
+                                      height="6", fg="white", font=("Arial", "40", "bold", "italic"))
+        self.faculty_label.place(relx=0.5, rely=0.10, anchor="center")
+
+        self.faculty_two_label = tk.Label(text="Please rank each candidate in order of preference",
+                                          bg="RoyalBlue4", width="55", height="3", fg="white",
+                                          font=("Arial", "15", "bold", "italic"))
+        self.faculty_two_label.place(relx=0.5, rely=0.2, anchor="center")
+
+        self.unique_label = tk.Label(text="Faculty of Liberal Arts and Sciences", bg="RoyalBlue4",
+                                     width="75", height="4", fg="white", font=("Arial", "25", "bold", "italic"))
+        self.unique_label.place(relx=0.5, rely=0.68, anchor="center")
+
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
+
+        # All combo boxes
+        self.first_box = ttk.Combobox(values=as_faculty_names)
+        self.first_box.place(relx=0.15, rely=0.75, anchor="center")
+        self.second_box = ttk.Combobox(values=as_faculty_names)
+        self.second_box.place(relx=0.375, rely=0.75, anchor="center")
+        self.third_box = ttk.Combobox(values=as_faculty_names)
+        self.third_box.place(relx=0.625, rely=0.75, anchor="center")
+        self.fourth_box = ttk.Combobox(values=as_faculty_names)
+        self.fourth_box.place(relx=0.85, rely=0.75, anchor="center")
+
+        # Preference labels
+        self.first_label = tk.Label(text="1st Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.first_label.place(relx=0.15, rely=0.80, anchor="center")
+        self.second_label = tk.Label(text="2nd Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.second_label.place(relx=0.375, rely=0.8, anchor="center")
+        self.third_label = tk.Label(text="3rd Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", 11, "bold", "italic"))
+        self.third_label.place(relx=0.625, rely=0.8, anchor="center")
+        self.fourth_label = tk.Label(text="4th Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.fourth_label.place(relx=0.85, rely=0.80, anchor="center")
+
+        # Buttons
+        self.back_button = tk.Button(text="Back", height="1", width=10, command=self.go_back)
+        self.back_button.place(relx=0.06, rely=0.03, anchor="center")
+        self.save_choice = tk.Button(text="Save Choice", height="2", width=15, command=self.save_choice)
+        self.save_choice.place(relx=0.5, rely=0.9, anchor="center")
+
+    def save_choice(self):
+        global student_username
+        self.first_choice = self.first_box.get()
+        self.second_choice = self.second_box.get()
+        self.third_choice = self.third_box.get()
+        self.fourth_choice = self.fourth_box.get()
+        globals()["faculty_votes"] = 0
+
+        # if user has voted for all four preferences correctly without errors then save entry and continue
+        if (self.first_box.get() in as_faculty_names and self.second_box.get() in as_faculty_names and
+                self.third_box.get() in as_faculty_names and self.fourth_box.get() in as_faculty_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.first_box.get() != self.fourth_box.get() and self.second_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="AS", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, third_pref=self.third_choice,
+                                 fourth_pref=self.fourth_choice)
+                    self.go_back()
+
+            # If user selects the same candidate twice
+            elif (self.first_box.get() == self.second_box.get() or self.first_box.get() == self.third_box.get() or
+                  self.first_box.get() == self.fourth_box.get() or self.second_box.get() == self.third_box.get() or
+                  self.second_box.get() == self.fourth_box.get() or self.third_box.get() == self.fourth_box.get()):
+                showinfo("window", "You cannot select the same candidate twice. Please try again")
+
+        # if user only votes for first preference
+        elif (self.first_box.get() in as_faculty_names and self.second_box.get() == "" and self.third_box.get() == ""
+              and self.fourth_box.get() == ""):
+            self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choice")
+            if self.msgbox == "yes":
+                globals()["faculty_votes"] = 1
+                faculty_main(faculty="AS", username=student_username, first_pref=self.first_choice)
+                self.go_back()
+
+        # if user votes for 1st and 2nd preference but not 3rd or 4th
+        elif (self.first_box.get() in as_faculty_names and self.second_box.get() in as_faculty_names and
+              self.third_box.get() == "" and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.second_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    self.go_back()
+                    faculty_main(faculty="AS", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice)
+                    self.go_back()
+
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 3rd but not 2nd or 4th
+        elif (self.first_box.get() in as_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() in as_faculty_names and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.third_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="AS", username=student_username, first_pref=self.first_choice,
+                                 third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 4th but not 2nd or 3rd
+        elif (self.first_box.get() in as_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() == "" and self.fourth_box.get() in as_faculty_names):
+            if self.first_box.get() != self.fourth_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="AS", username=student_username, first_pref=self.first_choice,
+                                 fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 3rd and 4th but not 2nd
+        elif (self.first_box.get() in as_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() in as_faculty_names and self.fourth_box.get() in as_faculty_names):
+            if (self.first_box.get() != self.fourth_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="AS", username=student_username, first_pref=self.first_choice,
+                                 third_pref=self.third_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 4th but not 3rd
+        elif (self.first_box.get() in as_faculty_names and self.second_box.get() in as_faculty_names and
+              self.third_box.get() == "" and self.fourth_box.get() in as_faculty_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.fourth_box.get() and
+                    self.second_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="AS", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 3rd but not 4th
+        elif (self.first_box.get() in as_faculty_names and self.second_box.get() in as_faculty_names and
+              self.third_box.get() in as_faculty_names and self.fourth_box.get() == ""):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.third_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="AS", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # Incorrect voting
+        else:
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
+
+    def go_back(self):
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
+        self.third_window = ThirdWindow(self.master)
+
+
+class FacultyWindowSB:
+
+    def __init__(self, master):
+        self.master = master
+
+        # Main Headers
+        self.faculty_label = tk.Label(text="GSU Faculty Officers!", bg="RoyalBlue4", width="100",
+                                      height="6", fg="white", font=("Arial", "40", "bold", "italic"))
+        self.faculty_label.place(relx=0.5, rely=0.10, anchor="center")
+
+        self.faculty_two_label = tk.Label(text="Please rank each candidate in order of preference",
+                                          bg="RoyalBlue4", width="55", height="3", fg="white",
+                                          font=("Arial", "15", "bold", "italic"))
+        self.faculty_two_label.place(relx=0.5, rely=0.2, anchor="center")
+
+        self.unique_label = tk.Label(text="School of Business", bg="RoyalBlue4",
+                                     width="75", height="4", fg="white", font=("Arial", "25", "bold", "italic"))
+        self.unique_label.place(relx=0.5, rely=0.68, anchor="center")
+
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
+
+        # All combo boxes
+        self.first_box = ttk.Combobox(values=sb_faculty_names)
+        self.first_box.place(relx=0.15, rely=0.75, anchor="center")
+        self.second_box = ttk.Combobox(values=sb_faculty_names)
+        self.second_box.place(relx=0.375, rely=0.75, anchor="center")
+        self.third_box = ttk.Combobox(values=sb_faculty_names)
+        self.third_box.place(relx=0.625, rely=0.75, anchor="center")
+        self.fourth_box = ttk.Combobox(values=sb_faculty_names)
+        self.fourth_box.place(relx=0.85, rely=0.75, anchor="center")
+
+        # Preference labels
+        self.first_label = tk.Label(text="1st Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.first_label.place(relx=0.15, rely=0.80, anchor="center")
+        self.second_label = tk.Label(text="2nd Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.second_label.place(relx=0.375, rely=0.8, anchor="center")
+        self.third_label = tk.Label(text="3rd Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", 11, "bold", "italic"))
+        self.third_label.place(relx=0.625, rely=0.8, anchor="center")
+        self.fourth_label = tk.Label(text="4th Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.fourth_label.place(relx=0.85, rely=0.80, anchor="center")
+
+        # Buttons
+        self.back_button = tk.Button(text="Back", height="1", width=10, command=self.go_back)
+        self.back_button.place(relx=0.06, rely=0.03, anchor="center")
+        self.save_choice = tk.Button(text="Save Choice", height="2", width=15, command=self.save_choice)
+        self.save_choice.place(relx=0.5, rely=0.9, anchor="center")
+
+    def save_choice(self):
+        global student_username
+        self.first_choice = self.first_box.get()
+        self.second_choice = self.second_box.get()
+        self.third_choice = self.third_box.get()
+        self.fourth_choice = self.fourth_box.get()
+        globals()["faculty_votes"] = 0
+
+        # if user has voted for all four preferences correctly without errors then save entry and continue
+        if (self.first_box.get() in sb_faculty_names and self.second_box.get() in sb_faculty_names and
+                self.third_box.get() in sb_faculty_names and self.fourth_box.get() in sb_faculty_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.first_box.get() != self.fourth_box.get() and self.second_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="SB", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, third_pref=self.third_choice,
+                                 fourth_pref=self.fourth_choice)
+                    self.go_back()
+
+            # If user selects the same candidate twice
+            elif (self.first_box.get() == self.second_box.get() or self.first_box.get() == self.third_box.get() or
+                  self.first_box.get() == self.fourth_box.get() or self.second_box.get() == self.third_box.get() or
+                  self.second_box.get() == self.fourth_box.get() or self.third_box.get() == self.fourth_box.get()):
+                showinfo("window", "You cannot select the same candidate twice. Please try again")
+
+        # if user only votes for first preference
+        elif (self.first_box.get() in sb_faculty_names and self.second_box.get() == "" and self.third_box.get() == ""
+              and self.fourth_box.get() == ""):
+            self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choice")
+            if self.msgbox == "yes":
+                globals()["faculty_votes"] = 1
+                faculty_main(faculty="SB", username=student_username, first_pref=self.first_choice)
+                self.go_back()
+
+        # if user votes for 1st and 2nd preference but not 3rd or 4th
+        elif (self.first_box.get() in sb_faculty_names and self.second_box.get() in sb_faculty_names and
+              self.third_box.get() == "" and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.second_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    self.go_back()
+                    faculty_main(faculty="SB", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice)
+                    self.go_back()
+
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 3rd but not 2nd or 4th
+        elif (self.first_box.get() in sb_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() in sb_faculty_names and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.third_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="SB", username=student_username, first_pref=self.first_choice,
+                                 third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 4th but not 2nd or 3rd
+        elif (self.first_box.get() in sb_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() == "" and self.fourth_box.get() in sb_faculty_names):
+            if self.first_box.get() != self.fourth_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="SB", username=student_username, first_pref=self.first_choice,
+                                 fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 3rd and 4th but not 2nd
+        elif (self.first_box.get() in sb_faculty_names and self.second_box.get() == "" and
+              self.third_box.get() in sb_faculty_names and self.fourth_box.get() in sb_faculty_names):
+            if (self.first_box.get() != self.fourth_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="SB", username=student_username, first_pref=self.first_choice,
+                                 third_pref=self.third_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 4th but not 3rd
+        elif (self.first_box.get() in sb_faculty_names and self.second_box.get() in sb_faculty_names and
+              self.third_box.get() == "" and self.fourth_box.get() in sb_faculty_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.fourth_box.get() and
+                    self.second_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="SB", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 3rd but not 4th
+        elif (self.first_box.get() in sb_faculty_names and self.second_box.get() in sb_faculty_names and
+              self.third_box.get() in sb_faculty_names and self.fourth_box.get() == ""):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.third_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["faculty_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    faculty_main(faculty="SB", username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # Incorrect voting
+        else:
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
+
+    def go_back(self):
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
+        self.third_window = ThirdWindow(self.master)
+
+
+class OfficerWindow:
+
+    def __init__(self, master):
+        self.master = master
+
+        # Main Headers
+        self.officer_label = tk.Label(text="GSU Officers!", bg="RoyalBlue4", width="100",
+                                      height="4", fg="white", font=("Arial", "40", "bold", "italic"))
+        self.officer_label.place(relx=0.5, rely=0.10, anchor="center")
+
+        self.officer_two_label = tk.Label(text="Please rank each candidate in order of preference",
+                                          bg="RoyalBlue4", width="55", height="4", fg="white",
+                                          font=("Arial", "15", "bold", "italic"))
+        self.officer_two_label.place(relx=0.5, rely=0.2, anchor="center")
+
+        # Male and female icons
+        self.image_one = Image.open("icon_male.jpg")
+        self.image_one_render = ImageTk.PhotoImage(self.image_one)
+        self.image_label_one = tk.Label(image=self.image_one_render, relief="sunken")
+        self.image_label_one.place(relx=0.15, rely=0.5, anchor="center")
+        self.image_two = Image.open("icon_female.jpg")
+        self.image_two_render = ImageTk.PhotoImage(self.image_two)
+        self.image_label_two = tk.Label(image=self.image_two_render, relief="sunken")
+        self.image_label_two.place(relx=0.375, rely=0.5, anchor="center")
+        self.image_three = Image.open("icon_male.jpg")
+        self.image_three_render = ImageTk.PhotoImage(self.image_three)
+        self.image_label_three = tk.Label(image=self.image_three_render, relief="sunken")
+        self.image_label_three.place(relx=0.625, rely=0.5, anchor="center")
+        self.image_four = Image.open("icon_female.jpg")
+        self.image_four_render = ImageTk.PhotoImage(self.image_four)
+        self.image_label_four = tk.Label(image=self.image_four_render, relief="sunken")
+        self.image_label_four.place(relx=0.85, rely=0.5, anchor="center")
+
+        # All combo boxes
+        self.first_box = ttk.Combobox(values=officer_names)
+        self.first_box.place(relx=0.15, rely=0.75, anchor="center")
+        self.second_box = ttk.Combobox(values=officer_names)
+        self.second_box.place(relx=0.375, rely=0.75, anchor="center")
+        self.third_box = ttk.Combobox(values=officer_names)
+        self.third_box.place(relx=0.625, rely=0.75, anchor="center")
+        self.fourth_box = ttk.Combobox(values=officer_names)
+        self.fourth_box.place(relx=0.85, rely=0.75, anchor="center")
+
+        # Preference labels
+        self.first_label = tk.Label(text="1st Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.first_label.place(relx=0.15, rely=0.80, anchor="center")
+        self.second_label = tk.Label(text="2nd Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.second_label.place(relx=0.375, rely=0.8, anchor="center")
+        self.third_label = tk.Label(text="3rd Preference", bg="RoyalBlue4", width="12",
+                                    height="2", fg="white", font=("Arial", 11, "bold", "italic"))
+        self.third_label.place(relx=0.625, rely=0.8, anchor="center")
+        self.fourth_label = tk.Label(text="4th Preference", bg="RoyalBlue4", width="12",
+                                     height="2", fg="white", font=("Arial", "11", "bold", "italic"))
+        self.fourth_label.place(relx=0.85, rely=0.80, anchor="center")
+
+        # Buttons
+        self.back_button = tk.Button(text="Back", height="1", width=10, command=self.go_back)
+        self.back_button.place(relx=0.06, rely=0.03, anchor="center")
+        self.save_choice = tk.Button(text="Save Choice", height="2", width=15, command=self.save_choice)
+        self.save_choice.place(relx=0.5, rely=0.9, anchor="center")
+
+    def save_choice(self):
+        global student_username
+        self.first_choice = self.first_box.get()
+        self.second_choice = self.second_box.get()
+        self.third_choice = self.third_box.get()
+        self.fourth_choice = self.fourth_box.get()
+        globals()["officer_votes"] = 0
+
+        # if user has voted for all four preferences correctly without errors then save entry and continue
+        if (self.first_box.get() in officer_names and self.second_box.get() in officer_names and
+                self.third_box.get() in officer_names and self.fourth_box.get() in officer_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.first_box.get() != self.fourth_box.get() and self.second_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.fourth_box.get() and self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["officer_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    officer_main(username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, third_pref=self.third_choice,
+                                 fourth_pref=self.fourth_choice)
+                    self.go_back()
+
+            # If user selects the same candidate twice
+            elif (self.first_box.get() == self.second_box.get() or self.first_box.get() == self.third_box.get() or
+                  self.first_box.get() == self.fourth_box.get() or self.second_box.get() == self.third_box.get() or
+                  self.second_box.get() == self.fourth_box.get() or self.third_box.get() == self.fourth_box.get()):
+                showinfo("window", "You cannot select the same candidate twice. Please try again")
+
+        # if user only votes for first preference
+        elif (self.first_box.get() in officer_names and self.second_box.get() == "" and self.third_box.get() == ""
+              and self.fourth_box.get() == ""):
+            self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choice")
+            if self.msgbox == "yes":
+                globals()["officer_votes"] = 1
+                officer_main(username=student_username, first_pref=self.first_choice)
+                self.go_back()
+
+        # if user votes for 1st and 2nd preference but not 3rd or 4th
+        elif (self.first_box.get() in officer_names and self.second_box.get() in officer_names and
+              self.third_box.get() == "" and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.second_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["officer_votes"] = 1
+                    officer_main(username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 3rd but not 2nd or 4th
+        elif (self.first_box.get() in officer_names and self.second_box.get() == "" and
+              self.third_box.get() in officer_names and self.fourth_box.get() == ""):
+            if self.first_box.get() != self.third_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["officer_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    officer_main(username=student_username, first_pref=self.first_choice,
+                                 third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st and 4th but not 2nd or 3rd
+        elif (self.first_box.get() in officer_names and self.second_box.get() == "" and
+              self.third_box.get() == "" and self.fourth_box.get() in officer_names):
+            if self.first_box.get() != self.fourth_box.get():
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["officer_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    officer_main(username=student_username, first_pref=self.first_choice,
+                                 fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 3rd and 4th but not 2nd
+        elif (self.first_box.get() in officer_names and self.second_box.get() == "" and
+              self.third_box.get() in officer_names and self.fourth_box.get() in officer_names):
+            if (self.first_box.get() != self.fourth_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.third_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["officer_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    officer_main(username=student_username, first_pref=self.first_choice,
+                                 third_pref=self.third_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 4th but not 3rd
+        elif (self.first_box.get() in officer_names and self.second_box.get() in officer_names and
+              self.third_box.get() == "" and self.fourth_box.get() in officer_names):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.fourth_box.get() and
+                    self.second_box.get() != self.fourth_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["officer_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    officer_main(username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, fourth_pref=self.fourth_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # if user votes for 1st, 2nd and 3rd but not 4th
+        elif (self.first_box.get() in officer_names and self.second_box.get() in officer_names and
+              self.third_box.get() in officer_names and self.fourth_box.get() == ""):
+            if (self.first_box.get() != self.second_box.get() and self.first_box.get() != self.third_box.get() and
+                    self.second_box.get() != self.third_box.get()):
+                self.msgbox = tk.messagebox.askquestion("Save & Exit", "Please confirm you are happy with your choices")
+                if self.msgbox == "yes":
+                    globals()["officer_votes"] = 1
+                    # SQLite Query that saves choices straight into relevant table
+                    officer_main(username=student_username, first_pref=self.first_choice,
+                                 second_pref=self.second_choice, third_pref=self.third_choice)
+                    self.go_back()
+            else:
+                showinfo("Incorrect Input", "You have voted incorrectly. Please try again")
+
+        # Incorrect voting
+        else:
+            showinfo("Incorrect Input", "You have voted incorrectly please try again")
+
+    def go_back(self):
+        self.list = root.place_slaves()
+        for i in self.list:
+            i.destroy()
+
+        self.third_window = ThirdWindow(self.master)
+
+
+if __name__ == '__main__':
+    root = tk.Tk()
+    app = MainWindow(root)
+    root.mainloop()
